@@ -25,18 +25,22 @@ public final class FamilyDtos {
             @Size(max = 64) String name,
             @JsonFormat(pattern = "HH:mm") LocalTime breakfastDeadline,
             @JsonFormat(pattern = "HH:mm") LocalTime lunchDeadline,
-            @JsonFormat(pattern = "HH:mm") LocalTime dinnerDeadline) {}
+            @JsonFormat(pattern = "HH:mm") LocalTime dinnerDeadline,
+            Integer fatigueWindowDays,
+            Integer fatigueThreshold) {}
 
     public record FamilyView(Long id, String name, String inviteCode,
                              @JsonFormat(pattern = "HH:mm") LocalTime breakfastDeadline,
                              @JsonFormat(pattern = "HH:mm") LocalTime lunchDeadline,
                              @JsonFormat(pattern = "HH:mm") LocalTime dinnerDeadline,
+                             int fatigueWindowDays, int fatigueThreshold,
                              Long myMemberId, Role myRole, int memberCount) {
         public static FamilyView of(Family f, FamilyMember me, int memberCount) {
             // 邀请码只给管理员和掌厨看，避免孩子随手转发
             String code = me.getRole().canCook() ? f.getInviteCode() : null;
             return new FamilyView(f.getId(), f.getName(), code, f.getBreakfastDeadline(), f.getLunchDeadline(),
-                    f.getDinnerDeadline(), me.getId(), me.getRole(), memberCount);
+                    f.getDinnerDeadline(), f.getFatigueWindowDays(), f.getFatigueThreshold(),
+                    me.getId(), me.getRole(), memberCount);
         }
     }
 

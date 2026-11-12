@@ -6,6 +6,7 @@ import Calendar from './views/Calendar.vue'
 import Dishes from './views/Dishes.vue'
 import Members from './views/Members.vue'
 import Rules from './views/Rules.vue'
+import Inventory from './views/Inventory.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -20,6 +21,7 @@ const router = createRouter({
         { path: 'dishes', component: Dishes, meta: { title: '菜谱管理' } },
         { path: 'members', component: Members, meta: { title: '成员管理' } },
         { path: 'rules', component: Rules, meta: { title: '家庭规则' } },
+        { path: 'inventory', component: Inventory, meta: { title: '库存与剩菜' } },
       ],
     },
   ],

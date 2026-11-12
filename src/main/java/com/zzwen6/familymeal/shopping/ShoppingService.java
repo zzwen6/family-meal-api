@@ -9,9 +9,14 @@ import com.zzwen6.familymeal.dish.DishIngredient;
 import com.zzwen6.familymeal.dish.DishRepository;
 import com.zzwen6.familymeal.family.FamilyAccess;
 import com.zzwen6.familymeal.family.FamilyMember;
+import com.zzwen6.familymeal.inventory.InventoryItem;
+import com.zzwen6.familymeal.inventory.InventoryItemRepository;
+import com.zzwen6.familymeal.inventory.Leftover;
+import com.zzwen6.familymeal.inventory.LeftoverRepository;
 import com.zzwen6.familymeal.menu.Menu;
 import com.zzwen6.familymeal.menu.MenuItem;
 import com.zzwen6.familymeal.menu.MenuRepository;
+import com.zzwen6.familymeal.rotation.KitchenDuty;
 import com.zzwen6.familymeal.shopping.ShoppingDtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,19 +32,28 @@ public class ShoppingService {
     private final MenuRepository menus;
     private final DishRepository dishes;
     private final FamilyAccess access;
+    private final KitchenDuty duty;
+    private final InventoryItemRepository inventory;
+    private final LeftoverRepository leftovers;
 
-    public ShoppingService(ShoppingListRepository lists, MenuRepository menus, DishRepository dishes, FamilyAccess access) {
+    public ShoppingService(ShoppingListRepository lists, MenuRepository menus, DishRepository dishes,
+                           FamilyAccess access, KitchenDuty duty, InventoryItemRepository inventory,
+                           LeftoverRepository leftovers) {
         this.lists = lists;
         this.menus = menus;
         this.dishes = dishes;
         this.access = access;
+        this.duty = duty;
+        this.inventory = inventory;
+        this.leftovers = leftovers;
     }
 
     /**
      * 根据已确认菜单生成采购清单：
      * 1. 每道菜按「菜单份数 / 菜谱默认份数」缩放用量；
      * 2. 同名同单位合并累加，记录来自哪些菜；
-     * 3. 家里常备（staple）的默认不买；重新生成时保留掌厨之前对同一样东西的勾选和已买状态。
+     * 3. 家里常备（staple）的默认不买；按名称对照库存和未用完剩菜扣减建议购买量（只计算、不改库存）；
+     * 4. 重新生成时保留「已买」；「买不买」仅在用户曾手工改过时保留，否则按常备和库存对照重新计算。
      */
     @Transactional
     public ShoppingList generate(Menu menu) {
@@ -73,6 +87,7 @@ public class ShoppingService {
             }
         }
 
+        List<StockOffset.PoolItem> pool = stockPool(menu.getFamilyId());
         // 保留手动添加的条目（sourceDishes 为空）
         List<ShoppingItem> manual = list.getItems().stream().filter(i -> i.getSourceDishes() == null).toList();
         list.getItems().clear();
@@ -82,11 +97,21 @@ public class ShoppingService {
             it.setList(list);
             it.setName(acc.name);
             it.setUnit(acc.unit);
-            it.setAmount(acc.hasUnknown && acc.amount.signum() == 0 ? null : Amounts.friendly(acc.amount, acc.unit));
+            BigDecimal recipeAmount = acc.hasUnknown && acc.amount.signum() == 0 ? null : Amounts.friendly(acc.amount, acc.unit);
+            StockOffset.Result offset = StockOffset.apply(acc.name, recipeAmount, acc.unit, pool);
+            it.setAmount(offset.applied() ? offset.remaining() : recipeAmount);
             it.setKind(acc.kind);
             it.setStaple(acc.allStaple);
+            it.setNote(offset.note());
             ShoppingItem prev = previous.get(it.mergeKey());
-            it.setToBuy(prev != null ? prev.isToBuy() : !acc.allStaple);
+            boolean autoToBuy = !acc.allStaple && !offset.fullyCovered();
+            if (prev != null && prev.isManualToBuy()) {
+                it.setToBuy(prev.isToBuy());
+                it.setManualToBuy(true);
+            } else {
+                it.setToBuy(autoToBuy);
+                it.setManualToBuy(false);
+            }
             it.setPurchased(prev != null && prev.isPurchased());
             String src = String.join("、", acc.sources);
             it.setSourceDishes(src.length() > 250 ? src.substring(0, 250) + "…" : src);
@@ -103,6 +128,8 @@ public class ShoppingService {
             copy.setStaple(false);
             copy.setToBuy(m.isToBuy());
             copy.setPurchased(m.isPurchased());
+            copy.setManualToBuy(m.isManualToBuy() || m.isToBuy()); // 手加的条目视为用户意图
+            copy.setNote(m.getNote());
             copy.setSortOrder(order++);
             list.getItems().add(copy);
         }
@@ -121,8 +148,9 @@ public class ShoppingService {
 
     @Transactional
     public ShoppingListView regenerate(Long familyId, Long menuId) {
-        access.cook(familyId);
+        FamilyMember me = access.member(familyId);
         Menu menu = menus.findByIdAndFamilyId(menuId, familyId).orElseThrow(() -> BizException.notFound("菜单"));
+        duty.requireKitchen(me, menu.getMealDate(), menu.getMealType());
         if (menu.getItems().isEmpty()) throw BizException.badRequest("菜单还没有确认菜品");
         return view(generate(menu), menu);
     }
@@ -133,8 +161,11 @@ public class ShoppingService {
         FamilyMember me = access.member(familyId);
         ShoppingItem item = lists.findItem(familyId, itemId).orElseThrow(() -> BizException.notFound("采购项"));
         if (req.toBuy() != null && req.toBuy() != item.isToBuy()) {
-            if (!me.getRole().canCook()) throw BizException.forbidden("只有掌厨可以调整买不买");
+            Menu menu = menus.findByIdAndFamilyId(item.getList().getMenuId(), familyId)
+                    .orElseThrow(() -> BizException.notFound("菜单"));
+            duty.requireKitchen(me, menu.getMealDate(), menu.getMealType());
             item.setToBuy(req.toBuy());
+            item.setManualToBuy(true);
         }
         if (req.purchased() != null) item.setPurchased(req.purchased());
         return ItemView.of(item);
@@ -142,8 +173,9 @@ public class ShoppingService {
 
     @Transactional
     public ItemView addItem(Long familyId, Long menuId, AddItemRequest req) {
-        access.cook(familyId);
+        FamilyMember me = access.member(familyId);
         Menu menu = menus.findByIdAndFamilyId(menuId, familyId).orElseThrow(() -> BizException.notFound("菜单"));
+        duty.requireKitchen(me, menu.getMealDate(), menu.getMealType());
         ShoppingList list = lists.findByMenuId(menu.getId()).orElseThrow(() -> BizException.notFound("采购清单"));
         ShoppingItem it = new ShoppingItem();
         it.setList(list);
@@ -152,6 +184,7 @@ public class ShoppingService {
         it.setUnit(req.unit() == null || req.unit().isBlank() ? null : req.unit().trim());
         it.setKind(IngredientKind.MAIN);
         it.setToBuy(true);
+        it.setManualToBuy(true);
         it.setSortOrder(list.getItems().size());
         list.getItems().add(it);
         lists.saveAndFlush(list);
@@ -160,9 +193,23 @@ public class ShoppingService {
 
     @Transactional
     public void deleteItem(Long familyId, Long itemId) {
-        access.cook(familyId);
+        FamilyMember me = access.member(familyId);
         ShoppingItem item = lists.findItem(familyId, itemId).orElseThrow(() -> BizException.notFound("采购项"));
+        Menu menu = menus.findByIdAndFamilyId(item.getList().getMenuId(), familyId)
+                .orElseThrow(() -> BizException.notFound("菜单"));
+        duty.requireKitchen(me, menu.getMealDate(), menu.getMealType());
         item.getList().getItems().remove(item);
+    }
+
+    private List<StockOffset.PoolItem> stockPool(Long familyId) {
+        List<StockOffset.PoolItem> pool = new ArrayList<>();
+        for (Leftover l : leftovers.findByFamilyIdAndUsedFalseOrderByExpiresOnAscIdAsc(familyId)) {
+            pool.add(new StockOffset.PoolItem(StockOffset.Kind.LEFTOVER, l.getName(), l.getAmount(), l.getUnit()));
+        }
+        for (InventoryItem i : inventory.findByFamilyIdOrderByIdAsc(familyId)) {
+            pool.add(new StockOffset.PoolItem(StockOffset.Kind.INVENTORY, i.getName(), i.getAmount(), i.getUnit()));
+        }
+        return pool;
     }
 
     private ShoppingListView view(ShoppingList list, Menu menu) {

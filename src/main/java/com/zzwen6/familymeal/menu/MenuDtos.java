@@ -4,6 +4,8 @@ import com.zzwen6.familymeal.common.Enums.MealType;
 import com.zzwen6.familymeal.common.Enums.MenuItemSource;
 import com.zzwen6.familymeal.common.Enums.MenuStatus;
 import com.zzwen6.familymeal.common.Enums.Role;
+import com.zzwen6.familymeal.hint.HintDtos.HintView;
+import com.zzwen6.familymeal.inventory.InventoryDtos.LeftoverView;
 import com.zzwen6.familymeal.shopping.ShoppingDtos.ShoppingListView;
 import com.zzwen6.familymeal.wish.WishDtos.WishView;
 import jakarta.validation.Valid;
@@ -30,7 +32,8 @@ public final class MenuDtos {
     public record ConfirmRequest(@NotNull LocalDate mealDate,
                                  @NotNull MealType mealType,
                                  @NotEmpty(message = "至少确认一道菜") @Valid List<ConfirmItem> items,
-                                 @Size(max = 500) String note) {}
+                                 @Size(max = 500) String note,
+                                 List<Long> useLeftoverIds) {}
 
     public record ReopenRequest(LocalDateTime deadline) {}
 
@@ -43,7 +46,9 @@ public final class MenuDtos {
 
     public record MenuView(Long id, LocalDate mealDate, MealType mealType, MenuStatus status, LocalDateTime deadline,
                            String note, LocalDateTime confirmedAt, String confirmedByName, LocalDateTime readyAt,
-                           List<MenuItemView> items, int wishCount) {}
+                           List<MenuItemView> items, int wishCount,
+                           Long assignedMemberId, String assignedMemberName, String assignedSource,
+                           boolean proxyConfirm) {}
 
     public record MemberStatus(Long memberId, String displayName, Role role, boolean submitted,
                                boolean notEatingHome, String allergies, String dietaryNotes) {}
@@ -52,10 +57,17 @@ public final class MenuDtos {
     public record DishVote(Long dishId, String name, int wantCount, int okCount, int avoidCount, int servings,
                            List<String> wantBy, List<String> avoidBy) {}
 
-    /** 掌厨工作台/今晚概览：一屏看全员意愿。 */
-    public record BoardView(LocalDate mealDate, MealType mealType, MenuView menu, boolean canEditWish,
-                            boolean canCook, LocalDateTime deadline, int headcount, List<MemberStatus> members,
-                            List<DishVote> votes, List<WishView> wishes) {}
+    public record CookBrief(Long memberId, String displayName, String source) {}
 
-    public record ConfirmResponse(MenuView menu, ShoppingListView shoppingList) {}
+    /** 掌厨工作台/今晚概览：一屏看全员意愿、指定掌厨和提示。 */
+    public record BoardView(LocalDate mealDate, MealType mealType, MenuView menu, boolean canEditWish,
+                            boolean canCook, boolean canRunKitchen, boolean canManageAssignment,
+                            LocalDateTime deadline, int headcount, List<MemberStatus> members,
+                            List<DishVote> votes, List<WishView> wishes,
+                            CookBrief assignedCook, boolean proxyConfirm,
+                            List<HintView> hints, List<LeftoverView> leftovers) {}
+
+    public record ConfirmResponse(MenuView menu, ShoppingListView shoppingList, List<HintView> hints) {}
+
+    public record HintPreview(List<HintView> hints) {}
 }

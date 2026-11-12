@@ -29,6 +29,9 @@ public class ShoppingItem {
     @Column(nullable = false)
     private boolean purchased;
     private String sourceDishes;
+    private String note;
+    @Column(nullable = false)
+    private boolean manualToBuy;
     @Column(nullable = false)
     private int sortOrder;
 
@@ -60,6 +63,10 @@ public class ShoppingItem {
     public void setPurchased(boolean purchased) { this.purchased = purchased; }
     public String getSourceDishes() { return sourceDishes; }
     public void setSourceDishes(String sourceDishes) { this.sourceDishes = sourceDishes; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+    public boolean isManualToBuy() { return manualToBuy; }
+    public void setManualToBuy(boolean manualToBuy) { this.manualToBuy = manualToBuy; }
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
 }

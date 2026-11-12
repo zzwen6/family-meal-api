@@ -108,6 +108,16 @@ public class FamilyService {
         if (req.breakfastDeadline() != null) f.setBreakfastDeadline(req.breakfastDeadline());
         if (req.lunchDeadline() != null) f.setLunchDeadline(req.lunchDeadline());
         if (req.dinnerDeadline() != null) f.setDinnerDeadline(req.dinnerDeadline());
+        if (req.fatigueWindowDays() != null) {
+            int d = req.fatigueWindowDays();
+            if (d < 1 || d > 60) throw BizException.badRequest("吃腻统计窗口应在 1～60 天之间");
+            f.setFatigueWindowDays(d);
+        }
+        if (req.fatigueThreshold() != null) {
+            int th = req.fatigueThreshold();
+            if (th < 1 || th > 20) throw BizException.badRequest("吃腻次数阈值应在 1～20 之间");
+            f.setFatigueThreshold(th);
+        }
         return FamilyView.of(f, me, members.findByFamilyIdOrderByIdAsc(familyId).size());
     }
 

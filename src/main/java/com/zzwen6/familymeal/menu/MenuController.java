@@ -44,6 +44,12 @@ public class MenuController {
         return service.confirm(familyId, req);
     }
 
+    /** 确认前预览吃腻 / 忌口 / 公平 / 将用掉的剩菜，不写库。 */
+    @PostMapping("/confirm-preview")
+    public HintPreview preview(@PathVariable Long familyId, @Valid @RequestBody ConfirmRequest req) {
+        return service.preview(familyId, req);
+    }
+
     @PostMapping("/{menuId}/lock")
     public MenuView lock(@PathVariable Long familyId, @PathVariable Long menuId) {
         return service.lock(familyId, menuId);

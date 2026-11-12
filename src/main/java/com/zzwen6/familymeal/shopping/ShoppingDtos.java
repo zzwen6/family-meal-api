@@ -15,10 +15,10 @@ public final class ShoppingDtos {
     private ShoppingDtos() {}
 
     public record ItemView(Long id, String name, BigDecimal amount, String unit, IngredientKind kind, boolean staple,
-                           boolean toBuy, boolean purchased, String sourceDishes) {
+                           boolean toBuy, boolean purchased, String sourceDishes, String note) {
         public static ItemView of(ShoppingItem i) {
             return new ItemView(i.getId(), i.getName(), i.getAmount(), i.getUnit(), i.getKind(), i.isStaple(),
-                    i.isToBuy(), i.isPurchased(), i.getSourceDishes());
+                    i.isToBuy(), i.isPurchased(), i.getSourceDishes(), i.getNote());
         }
     }
 

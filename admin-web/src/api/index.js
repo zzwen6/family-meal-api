@@ -64,6 +64,20 @@ export const api = {
   gatheringSlots: (from, to) => request('GET', `${f()}/gatherings?from=${from}&to=${to}`),
   board: (date, mealType) => request('GET', `${f()}/menus/board?date=${date}&mealType=${mealType}`),
   shoppingList: (menuId) => request('GET', `${f()}/menus/${menuId}/shopping-list`, undefined, { silent: true }),
+  cookRotation: () => request('GET', `${f()}/cook-rotation`),
+  updateCookRotation: (body) => request('PUT', `${f()}/cook-rotation`, body),
+  cookAssignments: (from, to) => request('GET', `${f()}/cook-assignments?from=${from}&to=${to}`),
+  assignCook: (body) => request('PUT', `${f()}/cook-assignments`, body),
+  generateAssignments: (body) => request('POST', `${f()}/cook-assignments/generate`, body),
+  inventory: () => request('GET', `${f()}/inventory`),
+  createInventory: (body) => request('POST', `${f()}/inventory`, body),
+  updateInventory: (id, body) => request('PUT', `${f()}/inventory/${id}`, body),
+  deleteInventory: (id) => request('DELETE', `${f()}/inventory/${id}`),
+  leftovers: (used) => request('GET', `${f()}/leftovers` + (used === undefined ? '' : `?used=${used}`)),
+  createLeftover: (body) => request('POST', `${f()}/leftovers`, body),
+  updateLeftover: (id, body) => request('PUT', `${f()}/leftovers/${id}`, body),
+  useLeftover: (id, menuId) => request('POST', `${f()}/leftovers/${id}/use`, { menuId }),
+  deleteLeftover: (id) => request('DELETE', `${f()}/leftovers/${id}`),
 }
 
 export const ROLE_LABELS = { ADMIN: '管理员', COOK: '掌厨', MEMBER: '成员', CHILD: '儿童' }

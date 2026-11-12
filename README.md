@@ -22,6 +22,9 @@
 | 掌厨确认菜单 | 一屏看全员意愿（谁没点、谁不在家、按菜汇总、过敏提醒），采纳 / 改菜 / 替代 / 加临时菜名，确认后自动生成采购清单。 |
 | 采购清单 | 按「菜单份数 ÷ 菜谱默认份数」缩放用量，同名同单位合并并注明来自哪些菜；按单位取好读的数（2.67 罐 → 3 罐）；家里常备默认不买，掌厨可勾回；家人可勾「已买」；重新生成保留勾选。 |
 | 开饭通知 | `POST /menus/{id}/ready` 写站内通知，并给绑定了微信的家人发**订阅消息**「开饭提醒」（配置见下文；未配置时跳过，站内通知照常）。 |
+| 掌厨轮换 | 管理员设定参与轮换的家人和适用餐次（默认晚餐），可生成本周/未来 N 天安排（按「谁做得少、较久没做、再按顺序」填空档，不覆盖手工指定）。今晚概况和工作台显示指定掌厨；可临时改派、对调。被排到的人不必先改成 COOK 角色。没有安排时权限与以前一样；有指定时，指定掌厨和管理员可确认，其他掌厨可代做（记录实际确认人并标明「代做」）。 |
+| 吃腻与心愿公平 | 默认看最近 14 天、同一道菜出现 2 次即提示「可能吃腻了」（窗口和阈值可在家庭规则里改）。统计每位成员 WANT 被纳入确认菜单的比例，较久没被选上会提示。AVOID 的菜若被放进菜单会警告对应成员。只统计本家庭已确认/已开饭的日常菜单，**不含聚餐**。提示由后端计算，在概况、确认预览和点意愿页展示，不强制拦截。 |
+| 库存与剩菜 | 家庭库存由管理员/掌厨手工维护；剩菜可在用餐后或随时登记。确认菜单和生成采购清单时，按规范化名称对照库存和未用完剩菜，扣减建议购买量（全额则默认不买并注明「家里已有」，部分则减少数量）。常备逻辑不变。对照只计算、不改库存数量，重新生成不会重复扣减；用掉剩菜后不再参与对照。采购勾选已买不会自动回写库存。 |
 | 临时聚餐 | 约朋友 / 亲戚吃饭：发起一场 → 小程序卡片或链接邀请 → 应邀（来不来、带几个人、忌口）→ 按三种玩法点菜 → 发起人确认菜单 → 开饭 → 散场；可「复用上次那波人」。和家庭数据完全隔离，详见下一节。 |
 
 ## 临时聚餐
@@ -74,16 +77,25 @@
 | POST | `/api/auth/login` / `/api/auth/register` | 用户名密码登录 / H5 注册 |
 | GET | `/api/auth/me` | 当前用户和所在家庭 |
 | GET/POST | `/api/families` · `/api/families/join` | 我的家庭 / 建家 / 邀请码入家 |
-| GET/PUT | `/api/families/{fid}` | 家庭信息与规则（截止时间） |
+| GET/PUT | `/api/families/{fid}` | 家庭信息与规则（截止时间、吃腻窗口/阈值） |
 | GET/POST/PUT/DELETE | `/api/families/{fid}/members[/{mid}]` | 成员 |
 | GET/POST/PUT/DELETE | `/api/families/{fid}/dishes[/{id}]` | 菜谱（`?servings=` 换算） |
 | GET/POST/PUT/DELETE | `/api/families/{fid}/wishes[/{id}]` · `/wishes/mine` | 点餐意愿 |
 | GET | `/api/families/{fid}/menus/board?date=&mealType=` | 某餐概览（掌厨工作台） |
 | GET | `/api/families/{fid}/menus?from=&to=` | 日历 |
-| POST | `/api/families/{fid}/menus/confirm` | 确认菜单并生成采购清单 |
+| POST | `/api/families/{fid}/menus/confirm` | 确认菜单并生成采购清单（可带 `useLeftoverIds` 用掉剩菜） |
+| POST | `/api/families/{fid}/menus/confirm-preview` | 确认前预览吃腻 / 忌口 / 公平提示，不写库 |
 | POST | `/api/families/{fid}/menus/{id}/lock` · `/menus/reopen` · `/menus/{id}/ready` | 截止 / 重新开放 / 开饭 |
-| GET/POST | `/api/families/{fid}/menus/{id}/shopping-list[/regenerate\|/items]` | 采购清单 |
+| GET/POST | `/api/families/{fid}/menus/{id}/shopping-list[/regenerate\|/items]` | 采购清单（生成时对照库存和剩菜） |
 | PATCH/DELETE | `/api/families/{fid}/shopping-items/{itemId}` | 勾选买不买、已买 |
+| GET/PUT | `/api/families/{fid}/cook-rotation` | 轮换设置（启用、适用餐次、参与成员及顺序；仅管理员可改） |
+| GET | `/api/families/{fid}/cook-assignments?from=&to=` | 一段日期内的掌厨安排 |
+| PUT | `/api/families/{fid}/cook-assignments` | 指定 / 改派 / 取消某餐掌厨（`memberId` 为空即取消） |
+| POST | `/api/families/{fid}/cook-assignments/generate` | 生成本周或 `from`～`to` / `days` 天安排，不覆盖手工指定 |
+| POST | `/api/families/{fid}/cook-assignments/swap` | 对调两餐的指定掌厨 |
+| GET | `/api/families/{fid}/hints?date=&mealType=&dishId=&name=` | 吃腻 / 公平 / 剩菜等提示（点意愿时可带菜） |
+| GET/POST/PUT/DELETE | `/api/families/{fid}/inventory[/{id}]` | 家庭库存（成员只读，管理员和掌厨可改） |
+| GET/POST/PUT/DELETE | `/api/families/{fid}/leftovers[/{id}]` · `POST .../leftovers/{id}/use` | 剩菜登记与用掉 |
 | GET | `/api/families/{fid}/notifications` | 站内通知（只有家庭通知） |
 | GET | `/api/families/{fid}/gatherings?from=&to=` | 家庭日历上的临时聚餐占位 |
 | GET | `/api/wechat/subscribe-config` | 小程序订阅「开饭提醒」用的模板 ID（未配置时 `enabled=false`） |
@@ -145,7 +157,7 @@ java -jar target/family-meal-api.jar
 mvn test
 ```
 
-集成测试用 Testcontainers 启动真实 MySQL 8 和 Redis（需要本机能跑 Docker），覆盖：登录 / 错误格式 / 限流、微信 mock 登录、邀请码注册，以及「点餐 → 截止 → 确认菜单 → 采购清单（缩放、合并、常备品、保留勾选）→ 开饭通知」主流程、角色校验和跨家庭隔离。
+集成测试用 Testcontainers 启动真实 MySQL 8 和 Redis（需要本机能跑 Docker），覆盖：登录 / 错误格式 / 限流、微信 mock 登录、邀请码注册，以及「点餐 → 截止 → 确认菜单 → 采购清单（缩放、合并、常备品、保留勾选）→ 开饭通知」主流程、角色校验和跨家庭隔离。`DailyEnhanceIntegrationTest` 覆盖掌厨轮换（生成、手工改派/对调、不覆盖手工指定、无安排时旧权限、指定后确认与代做）、吃腻与公平（窗口内重复菜、WANT 长期未选中、AVOID 警告、聚餐不计入）、库存与剩菜（全额/部分扣减、用掉后不再扣、成员只读）。
 
 `GatheringIntegrationTest` 覆盖临时聚餐：创建、邀请预览、应邀、三种玩法主路径（想吃汇总 / 提议 + 一人一票 / 认领防重复）、截止、确认、人数变化后份量和采购换算、开饭通知不进家庭、散场后不能加入和修改、复用上波人、家庭日历占位，以及客人访问发起人家庭菜谱 / 意愿 / 成员等全部 403、非参与者 403。`WechatNotifierTest` 用 mock HTTP 验证订阅消息：未配置跳过、access_token 获取与 Redis 缓存（提前 5 分钟过期）、token 失效重取、请求体与字段映射、失败返回 FAILED 不抛异常。
 
@@ -194,12 +206,22 @@ FM_TEST_MYSQL_USER=root FM_TEST_MYSQL_PASSWORD=root FM_TEST_REDIS_PORT=6379 mvn 
 
 实现：`WechatNotifier` 用 appid + secret 取 `access_token`，缓存在 Redis `fm:wx:access_token`，比微信给的有效期提前 5 分钟过期；token 失效（40001 / 42001）时清缓存重取一次；逐个 openid 调 `POST /cgi-bin/message/subscribe/send`。用户没授权（43101）或其他失败只记日志，至少一人成功记 `SENT`，全部失败记 `FAILED`，**不会影响开饭流程和站内通知**。三项没配齐时直接记 `SKIPPED`。
 
+## 吃腻、公平与库存对照规则
+
+- **默认窗口 14 天、吃腻阈值 2 次**。管理员可在家庭规则里把窗口改成 1～60 天（常用 7 / 14 / 21），阈值 1～20。只统计本家庭状态为已确认 / 已开饭的日常菜单，按 `dish_id` 或规范化菜名匹配；临时聚餐的菜单、意愿和采购**不进入**吃腻、公平、轮换和库存统计。
+- **名称规范化**：去掉空格（含全角空格）、全角转半角、忽略大小写。单位会把「克/g」「毫升/ml」等常见别名视为相同；单位不同则不自动扣数量，只提示核对。
+- **采购对照**：生成或重新生成清单时，按名称匹配**未用完剩菜（优先，可能先过期）和库存**，只计算建议购买量，**不改库存数量**，因此反复生成不会重复扣减。全额覆盖则该项默认 `to_buy=false` 并注明「家里已有」；部分覆盖则减少数量并注明用了多少。家里常备（staple）仍然默认不买。用户手工改过的「买不买」（`manual_to_buy`）和「已买」在重新生成时会保留；未手工改过的「买不买」会按常备和当前对照结果重算。
+- **用掉剩菜**：确认菜单时若选了对应菜，或请求里带了 `useLeftoverIds`，或事后点「用掉」，该份剩菜标记为已用，不再参与对照。采购勾选已买**不会**自动回写库存，需要掌厨在库存页手动维护数量。
+
+表结构增量在 `V3__daily_enhance.sql`（V1 / V2 未改动）。
+
 ## 已知限制 / 后续
 
 - 订阅消息是一次性授权：用户每点一次「提醒我开饭」只能收一条；服务端不记录授权次数，没授权的人微信会返回 43101（记日志跳过）。
 - H5 无法使用微信网页授权（个人主体没有公众号），H5 用用户名密码 + 邀请码；H5 也收不到微信订阅消息，只有站内通知。
 - 临时聚餐的采购清单需要发起人手填（菜名是快照，不套用家庭菜谱用料）；聚餐不做 AA 收款。
 - 没有微信支付（个人主体也不支持）。
+- 采购勾选已买或用掉剩菜后不会自动增减库存数量，需手工维护库存，以免和「对照时只计算不扣库存」的规则打架。
 
 ## 部署
 

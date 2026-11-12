@@ -24,7 +24,8 @@
             </div>
             <div class="muted" v-if="!slot(d.date, meal).items.length">{{ slot(d.date, meal).wishCount }} 条意愿</div>
           </template>
-          <span v-else-if="!gatheringsAt(d.date, meal).length" class="muted">—</span>
+          <span v-else-if="!assignmentAt(d.date, meal) && !gatheringsAt(d.date, meal).length" class="muted">—</span>
+          <div v-if="assignmentAt(d.date, meal)" class="cook">👨‍🍳 {{ assignmentAt(d.date, meal).memberName }}<span v-if="assignmentAt(d.date, meal).proxyConfirm" class="muted">（{{ assignmentAt(d.date, meal).confirmedByName }} 代做）</span></div>
           <div v-for="g in gatheringsAt(d.date, meal)" :key="'g' + g.id" class="gathering" :title="`${g.hostName} 发起的临时聚餐`">
             🎉 临时聚餐：{{ g.title }}
             <span class="muted">（{{ g.hostName }} · {{ GATHERING_STATUS_LABELS[g.status] }}）</span>
@@ -49,6 +50,19 @@
           截止：{{ board.deadline?.replace('T', ' ').slice(0, 16) }}，预计 {{ board.headcount }} 人在家吃
           <el-tag v-if="board.menu" size="small" :type="STATUS_TYPES[board.menu.status]" style="margin-left: 8px">{{ STATUS_LABELS[board.menu.status] }}</el-tag>
         </p>
+        <p v-if="board.assignedCook">
+          今晚掌厨：{{ board.assignedCook.displayName }}
+          <el-tag v-if="board.proxyConfirm" size="small" type="warning" style="margin-left: 8px">{{ board.menu?.confirmedByName }} 代做</el-tag>
+        </p>
+        <el-alert
+          v-for="h in board.hints || []"
+          :key="h.type + (h.dishName || '') + (h.memberId || '') + (h.leftoverId || '')"
+          :type="h.type === 'AVOID' ? 'error' : h.type === 'FATIGUE' ? 'warning' : 'info'"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 8px"
+          :title="h.message"
+        />
         <h4>成员</h4>
         <div class="row-gap">
           <el-tag v-for="m in board.members" :key="m.memberId" :type="m.notEatingHome ? 'info' : m.submitted ? 'success' : 'warning'">
@@ -80,6 +94,7 @@
             <el-table-column label="用量" width="100"><template #default="{ row }">{{ row.amount ?? '适量' }} {{ row.unit || '' }}</template></el-table-column>
             <el-table-column label="已买" width="60"><template #default="{ row }">{{ row.purchased ? '✓' : '' }}</template></el-table-column>
             <el-table-column prop="sourceDishes" label="用于" />
+            <el-table-column prop="note" label="对照说明" />
           </el-table>
           <p class="muted" v-if="shopping.stapleItems.length">家里常备（默认不买）：{{ shopping.stapleItems.map((i) => i.name).join('、') }}</p>
         </template>
@@ -99,6 +114,7 @@ const todayStr = fmtDate(new Date())
 const start = ref(monday(new Date()))
 const menus = ref([])
 const gatherings = ref([])
+const assignments = ref([])
 const loading = ref(false)
 
 const days = computed(() => Array.from({ length: 7 }, (_, i) => {
@@ -121,14 +137,20 @@ function shift(n) {
 function goToday() { start.value = monday(new Date()); load() }
 function slot(date, meal) { return menus.value.find((m) => m.mealDate === date && m.mealType === meal) }
 function gatheringsAt(date, meal) { return gatherings.value.filter((g) => g.mealDate === date && g.mealType === meal) }
+function assignmentAt(date, meal) { return assignments.value.find((a) => a.mealDate === date && a.mealType === meal) }
 
 async function load() {
   loading.value = true
   try {
     const [from, to] = [days.value[0].date, days.value[6].date]
-    const [m, g] = await Promise.all([api.calendar(from, to), api.gatheringSlots(from, to).catch(() => [])])
+    const [m, g, a] = await Promise.all([
+      api.calendar(from, to),
+      api.gatheringSlots(from, to).catch(() => []),
+      api.cookAssignments(from, to).catch(() => []),
+    ])
     menus.value = m
     gatherings.value = g
+    assignments.value = a
   } finally {
     loading.value = false
   }
@@ -170,4 +192,5 @@ onMounted(load)
 .cell.slot:hover { border-color: #e6772e; }
 .items { margin-top: 6px; line-height: 1.6; }
 .gathering { margin-top: 6px; padding: 4px 6px; border-radius: 4px; background: #fff4e5; color: #b4610f; font-size: 12px; line-height: 1.5; }
+.cook { margin-top: 6px; font-size: 12px; color: #555; }
 </style>
