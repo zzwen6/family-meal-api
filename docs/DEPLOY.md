@@ -12,7 +12,7 @@ NAS 上 opds-library 那套 Compose 里的 Watchtower（127.0.0.1:8081，经 ngi
                     └─ 拉取所有带 com.centurylinklabs.watchtower.enable=true 标签的容器的新镜像并重建
 ```
 
-本仓库的 `docker-compose.yml` **不包含** Watchtower：NAS 上已经有一个，开第二个会抢同一个 webhook / 端口并重复更新。已有的 Watchtower 设置了 `WATCHTOWER_LABEL_ENABLE=true`，会一并更新本项目的 `api` 容器（MySQL 和 Redis 标了 `enable=false`，不会被自动升级）。
+本仓库的 `docker-compose.yml` **只启动 API 容器**，不包含 MySQL、Redis，也不包含 Watchtower。MySQL 和 Redis 请指向你已经独立部署的实例。NAS 上已经有 Watchtower，开第二个会抢同一个 webhook / 端口并重复更新；已有的 Watchtower 设置了 `WATCHTOWER_LABEL_ENABLE=true`，会更新本项目带 `com.centurylinklabs.watchtower.enable=true` 标签的 `api` 容器。
 
 ## 1. GitHub Actions secrets（一次性）
 
@@ -42,7 +42,9 @@ echo "<你的 PAT>" | docker login ghcr.io -u zzwen6 --password-stdin
 mkdir -p /volume1/docker/family-meal && cd /volume1/docker/family-meal
 # 放入本仓库的 docker-compose.yml 和 .env.example
 cp .env.example .env
-vi .env     # 改 MYSQL_PASSWORD、MYSQL_ROOT_PASSWORD、JWT_SECRET、ADMIN_PASSWORD、WECHAT_APPID/SECRET、CORS_ALLOWED_ORIGINS
+# 先在已有 MySQL 上建好空库 family_meal 和账号（字符集 utf8mb4），表由 Flyway 启动时创建
+vi .env     # 填写 MYSQL_HOST/PORT/USER/PASSWORD、REDIS_HOST/PORT/PASSWORD、JWT_SECRET、ADMIN_PASSWORD、WECHAT_APPID/SECRET、CORS_ALLOWED_ORIGINS
+# MYSQL_HOST / REDIS_HOST：库在 NAS 本机上用 host.docker.internal；在其他容器里填容器名或 IP，必要时把 api 加入同一 Docker 网络
 
 docker compose pull
 docker compose up -d
@@ -52,7 +54,7 @@ docker compose logs -f api      # 看到 Started FamilyMealApplication 即可
 - 默认宿主机端口 `8090`（`HTTP_PORT`），因为 8080 已被 opds-library 占用。
 - 管理后台：`http://<NAS>:8090/admin/`，用 `.env` 里的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登录。
 - 健康检查：`http://<NAS>:8090/actuator/health`。
-- 数据在 `./mysql-data` 和 `./redis-data`，备份这两个目录即可（MySQL 建议用 `mysqldump`）。
+- 数据在你独立部署的 MySQL 和 Redis 里，按原有方式备份即可（MySQL 建议用 `mysqldump`）。
 
 Watchtower 从容器内的 `/config.json` 读 GHCR 登录信息（opds-library 的 Compose 已挂载 `/root/.docker/config.json`）。所以在 NAS 上用 root（群晖一般是 `sudo docker login`）登录一次 ghcr.io，Watchtower 就能拉本项目的镜像。GHCR 包首次推送后如果是私有，也可以在 GitHub → Packages → family-meal-api → Package settings 里改成 Public，这样不登录也能拉。
 
