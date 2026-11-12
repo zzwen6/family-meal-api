@@ -87,3 +87,62 @@ docker build -t family-meal-api:local .
 ```
 
 GitHub Actions 在海外，会通过 `--build-arg MAVEN_MIRROR=https://repo.maven.apache.org/maven2 NPM_REGISTRY=https://registry.npmjs.org/` 换回官方源。
+
+## 6. nginx 反代示例
+
+对外域名（例如 `https://meal.six666.qzz.io`）必须把下面几个路径转到本机 Spring Boot，否则小程序、H5 和 Android App 都打不开接口。本仓库 `docker-compose.yml` 默认把容器 8080 映到宿主机 **8090**（`HTTP_PORT`），所以上游是 `http://127.0.0.1:8090`。
+
+如果浏览器打开域名根路径还是 nginx 默认欢迎页，并且访问 `/api`、`/admin`、`/actuator/health` 都是 404，说明还没有按下面这样把路径反代到 8090，需要补上这段配置后 `nginx -t && nginx -s reload`（或在群晖 / 面板里改对应 server 块）。
+
+菜谱短视频上传上限是 30MB，请把 `client_max_body_size` 设到至少 `32m`。管理后台在 `/admin/`，健康检查在 `/actuator/health`。Android App 只走 `/api/`（含媒体下载），不依赖根路径页面。
+
+把 `map` 放到 `http { }` 里（若发行版已有同样的 `$connection_upgrade` 就不要重复定义）。`server` 块里的证书路径改成你实际的 Let's Encrypt 文件。
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name meal.six666.qzz.io;
+
+    ssl_certificate     /etc/letsencrypt/live/meal.six666.qzz.io/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/meal.six666.qzz.io/privkey.pem;
+
+    # 菜谱短视频上限 30MB
+    client_max_body_size 32m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_connect_timeout 15s;
+    proxy_send_timeout 120s;
+    proxy_read_timeout 120s;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8090;
+        # 视频边下边播时可打开下一行
+        # proxy_buffering off;
+    }
+
+    location /admin/ {
+        proxy_pass http://127.0.0.1:8090;
+    }
+
+    location /actuator/ {
+        proxy_pass http://127.0.0.1:8090;
+        # 如需对外只暴露健康检查，可改成只允许 /actuator/health
+    }
+}
+```
+
+`proxy_pass` 不要写成 `http://127.0.0.1:8090/`（末尾多一个斜杠会把 `/api/` 剥掉）。Spring Boot 自己就挂在 `/api`、`/admin`、`/actuator` 这些路径上，需要原样转发。
+
+若还想把 H5 静态页挂在同一域名的根路径，可再加一个 `location /` 指向 H5 目录，不要让它盖住上面三个前缀。
+
