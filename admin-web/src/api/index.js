@@ -60,6 +60,8 @@ export const api = {
   deactivateDish: (id) => request('DELETE', `${f()}/dishes/${id}`),
   restoreDish: (id) => request('POST', `${f()}/dishes/${id}/restore`),
   calendar: (from, to) => request('GET', `${f()}/menus?from=${from}&to=${to}`),
+  /** 临时聚餐在家庭日历上的占位（只有标题、发起人，不含聚餐详情） */
+  gatheringSlots: (from, to) => request('GET', `${f()}/gatherings?from=${from}&to=${to}`),
   board: (date, mealType) => request('GET', `${f()}/menus/board?date=${date}&mealType=${mealType}`),
   shoppingList: (menuId) => request('GET', `${f()}/menus/${menuId}/shopping-list`, undefined, { silent: true }),
 }
@@ -69,6 +71,7 @@ export const MEAL_LABELS = { BREAKFAST: '早餐', LUNCH: '午餐', DINNER: '晚�
 export const STATUS_LABELS = { OPEN: '点餐中', LOCKED: '已截止', CONFIRMED: '已确认', READY: '已开饭' }
 export const STATUS_TYPES = { OPEN: 'info', LOCKED: 'warning', CONFIRMED: 'success', READY: '' }
 export const DIFFICULTY_LABELS = { EASY: '简单', MEDIUM: '中等', HARD: '有难度' }
+export const GATHERING_STATUS_LABELS = { OPEN: '邀请中', CONFIRMED: '菜单已定', CLOSED: '已散场' }
 export const INTENSITY_LABELS = { WANT: '很想吃', OK: '都可以', AVOID: '别做这个' }
 
 export function fmtDate(d) {

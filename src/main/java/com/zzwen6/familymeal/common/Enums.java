@@ -26,7 +26,12 @@ public final class Enums {
 
     public enum MenuItemSource { WISH, COOK_ADDED, SUBSTITUTE }
 
-    public enum NotificationType { MENU_CONFIRMED, DINNER_READY }
+    /** 家庭：MENU_CONFIRMED / DINNER_READY；临时聚餐：GATHERING_CONFIRMED / GATHERING_READY（只存在聚餐通知里）。 */
+    public enum NotificationType {
+        MENU_CONFIRMED, DINNER_READY, GATHERING_CONFIRMED, GATHERING_READY;
+        /** 只有「开饭啦」类通知会走微信订阅消息，避免浪费用户一次性的订阅授权。 */
+        public boolean pushesWechat() { return this == DINNER_READY || this == GATHERING_READY; }
+    }
 
     public enum WechatStatus { SKIPPED, SENT, FAILED }
 }

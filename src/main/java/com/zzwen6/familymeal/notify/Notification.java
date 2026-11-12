@@ -13,8 +13,10 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    /** 家庭通知有值；聚餐通知为空（二者互斥，见 V2 迁移的 CHECK）。 */
     private Long familyId;
+    /** 聚餐通知有值，只对本场参与者可见。 */
+    private Long gatheringId;
     private Long menuId;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
@@ -38,6 +40,8 @@ public class Notification {
     public Long getId() { return id; }
     public Long getFamilyId() { return familyId; }
     public void setFamilyId(Long familyId) { this.familyId = familyId; }
+    public Long getGatheringId() { return gatheringId; }
+    public void setGatheringId(Long gatheringId) { this.gatheringId = gatheringId; }
     public Long getMenuId() { return menuId; }
     public void setMenuId(Long menuId) { this.menuId = menuId; }
     public NotificationType getType() { return type; }

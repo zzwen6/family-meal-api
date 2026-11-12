@@ -24,12 +24,26 @@
             </div>
             <div class="muted" v-if="!slot(d.date, meal).items.length">{{ slot(d.date, meal).wishCount }} 条意愿</div>
           </template>
-          <span v-else class="muted">—</span>
+          <span v-else-if="!gatheringsAt(d.date, meal).length" class="muted">—</span>
+          <div v-for="g in gatheringsAt(d.date, meal)" :key="'g' + g.id" class="gathering" :title="`${g.hostName} 发起的临时聚餐`">
+            🎉 临时聚餐：{{ g.title }}
+            <span class="muted">（{{ g.hostName }} · {{ GATHERING_STATUS_LABELS[g.status] }}）</span>
+          </div>
         </div>
       </template>
     </div>
 
     <el-drawer v-model="drawer" :title="drawerTitle" size="520px">
+      <el-alert
+        v-for="g in drawerGatherings"
+        :key="g.id"
+        type="warning"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 12px"
+        :title="`这餐有一场临时聚餐：${g.title}`"
+        :description="`${g.hostName} 发起 · ${GATHERING_STATUS_LABELS[g.status]}。聚餐的人和菜单只在小程序 / H5 的「我的聚餐」里给参与者看，不计入家里的点餐。`"
+      />
       <div v-if="board" v-loading="boardLoading">
         <p>
           截止：{{ board.deadline?.replace('T', ' ').slice(0, 16) }}，预计 {{ board.headcount }} 人在家吃
@@ -77,13 +91,14 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { api, fmtDate, MEAL_LABELS, STATUS_LABELS, STATUS_TYPES } from '../api'
+import { api, fmtDate, GATHERING_STATUS_LABELS, MEAL_LABELS, STATUS_LABELS, STATUS_TYPES } from '../api'
 
 const meals = ['BREAKFAST', 'LUNCH', 'DINNER']
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 const todayStr = fmtDate(new Date())
 const start = ref(monday(new Date()))
 const menus = ref([])
+const gatherings = ref([])
 const loading = ref(false)
 
 const days = computed(() => Array.from({ length: 7 }, (_, i) => {
@@ -105,11 +120,15 @@ function shift(n) {
 }
 function goToday() { start.value = monday(new Date()); load() }
 function slot(date, meal) { return menus.value.find((m) => m.mealDate === date && m.mealType === meal) }
+function gatheringsAt(date, meal) { return gatherings.value.filter((g) => g.mealDate === date && g.mealType === meal) }
 
 async function load() {
   loading.value = true
   try {
-    menus.value = await api.calendar(days.value[0].date, days.value[6].date)
+    const [from, to] = [days.value[0].date, days.value[6].date]
+    const [m, g] = await Promise.all([api.calendar(from, to), api.gatheringSlots(from, to).catch(() => [])])
+    menus.value = m
+    gatherings.value = g
   } finally {
     loading.value = false
   }
@@ -120,10 +139,12 @@ const drawerTitle = ref('')
 const board = ref(null)
 const boardLoading = ref(false)
 const shopping = ref(null)
+const drawerGatherings = ref([])
 
 async function open(date, meal) {
   drawer.value = true
   drawerTitle.value = `${date} ${MEAL_LABELS[meal]}`
+  drawerGatherings.value = gatheringsAt(date, meal)
   board.value = null
   shopping.value = null
   boardLoading.value = true
@@ -148,4 +169,5 @@ onMounted(load)
 .cell.slot { cursor: pointer; min-height: 90px; border: 1px solid #eee; }
 .cell.slot:hover { border-color: #e6772e; }
 .items { margin-top: 6px; line-height: 1.6; }
+.gathering { margin-top: 6px; padding: 4px 6px; border-radius: 4px; background: #fff4e5; color: #b4610f; font-size: 12px; line-height: 1.5; }
 </style>

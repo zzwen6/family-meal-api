@@ -62,8 +62,17 @@ app:
     secret: ${WECHAT_SECRET:}
     # 未配置 appid 时，允许 wx-login 用 mock openid（仅开发调试，生产请关闭）
     mock-enabled: ${WECHAT_MOCK_ENABLED:false}
+    # 开饭提醒订阅消息模板 ID；和 appid/secret 都配了才真正推送，否则只写站内通知（SKIPPED）
     dinner-ready-template-id: ${WECHAT_DINNER_READY_TEMPLATE_ID:}
     api-base: ${WECHAT_API_BASE:https://api.weixin.qq.com}
+    subscribe:
+      # 模板字段名因你在微信后台选的模板而异，按模板详情里的「thing1 / time3」等填写；留空表示不发该字段
+      title-field: ${WECHAT_TPL_TITLE_FIELD:thing1}
+      content-field: ${WECHAT_TPL_CONTENT_FIELD:thing2}
+      time-field: ${WECHAT_TPL_TIME_FIELD:time3}
+      # 点消息跳转的小程序版本：formal / trial / developer
+      miniprogram-state: ${WECHAT_MINIPROGRAM_STATE:formal}
+      lang: zh_CN
   admin:
     username: ${ADMIN_USERNAME:admin}
     password: ${ADMIN_PASSWORD:}
