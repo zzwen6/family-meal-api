@@ -5,6 +5,7 @@ import com.zzwen6.familymeal.common.Enums.MenuItemSource;
 import com.zzwen6.familymeal.common.Enums.MenuStatus;
 import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.hint.HintDtos.HintView;
+import com.zzwen6.familymeal.nutrition.NutritionDtos.NutritionEstimate;
 import com.zzwen6.familymeal.inventory.InventoryDtos.LeftoverView;
 import com.zzwen6.familymeal.rating.RatingDtos.RatingView;
 import com.zzwen6.familymeal.shopping.ShoppingDtos.ShoppingListView;
@@ -50,7 +51,7 @@ public final class MenuDtos {
                            String note, LocalDateTime confirmedAt, String confirmedByName, LocalDateTime readyAt,
                            List<MenuItemView> items, int wishCount,
                            Long assignedMemberId, String assignedMemberName, String assignedSource,
-                           boolean proxyConfirm) {}
+                           boolean proxyConfirm, NutritionEstimate nutrition) {}
 
     public record MemberStatus(Long memberId, String displayName, Role role, boolean submitted,
                                boolean notEatingHome, String allergies, String dietaryNotes) {}

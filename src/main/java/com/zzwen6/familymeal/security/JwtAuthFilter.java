@@ -24,9 +24,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        String header = req.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            jwt.parse(header.substring(7).trim()).ifPresent(u -> {
+        String token = bearer(req.getHeader("Authorization"));
+        // 小程序 <image>/<video> 和 H5 的 src 带不上 Authorization，仅允许媒体下载用 query
+        if (token == null && "GET".equalsIgnoreCase(req.getMethod()) && isMediaPath(req.getRequestURI())) {
+            String q = req.getParameter("access_token");
+            if (q != null && !q.isBlank()) token = q.trim();
+        }
+        if (token != null) {
+            jwt.parse(token).ifPresent(u -> {
                 var authorities = u.systemAdmin()
                         ? List.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"))
                         : List.of(new SimpleGrantedAuthority("ROLE_USER"));
@@ -35,5 +40,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             });
         }
         chain.doFilter(req, res);
+    }
+
+    private static String bearer(String header) {
+        if (header != null && header.startsWith("Bearer ")) {
+            String t = header.substring(7).trim();
+            return t.isEmpty() ? null : t;
+        }
+        return null;
+    }
+
+    private static boolean isMediaPath(String uri) {
+        return uri != null && uri.contains("/media/");
     }
 }

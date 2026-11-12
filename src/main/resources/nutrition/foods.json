@@ -1,0 +1,1277 @@
+[
+  {
+    "name": "猪肉",
+    "aliases": [
+      "瘦肉",
+      "前腿肉",
+      "后腿肉"
+    ],
+    "kcal": 143,
+    "protein": 20.3,
+    "fat": 6.2,
+    "carb": 1.5
+  },
+  {
+    "name": "五花肉",
+    "aliases": [
+      "五花",
+      "肥瘦肉"
+    ],
+    "kcal": 395,
+    "protein": 13.6,
+    "fat": 37.0,
+    "carb": 0.0
+  },
+  {
+    "name": "排骨",
+    "aliases": [
+      "肋排",
+      "小排"
+    ],
+    "kcal": 278,
+    "protein": 18.3,
+    "fat": 22.0,
+    "carb": 0.0
+  },
+  {
+    "name": "猪蹄",
+    "aliases": [
+      "猪脚",
+      "猪手"
+    ],
+    "kcal": 260,
+    "protein": 22.6,
+    "fat": 18.8,
+    "carb": 0.0
+  },
+  {
+    "name": "牛肉",
+    "aliases": [
+      "牛腩",
+      "牛里脊"
+    ],
+    "kcal": 125,
+    "protein": 20.2,
+    "fat": 4.4,
+    "carb": 0.0
+  },
+  {
+    "name": "羊肉",
+    "aliases": [
+      "羊腿",
+      "羊排"
+    ],
+    "kcal": 203,
+    "protein": 19.0,
+    "fat": 14.1,
+    "carb": 0.0
+  },
+  {
+    "name": "鸡胸肉",
+    "aliases": [
+      "鸡胸",
+      "鸡脯",
+      "鸡脯肉"
+    ],
+    "kcal": 133,
+    "protein": 19.4,
+    "fat": 5.0,
+    "carb": 2.5
+  },
+  {
+    "name": "鸡腿",
+    "aliases": [
+      "鸡腿肉",
+      "琵琶腿"
+    ],
+    "kcal": 181,
+    "protein": 16.7,
+    "fat": 13.0,
+    "carb": 0.0,
+    "pieceGrams": 150
+  },
+  {
+    "name": "鸡翅",
+    "aliases": [
+      "翅中",
+      "翅根",
+      "鸡翅膀"
+    ],
+    "kcal": 194,
+    "protein": 17.4,
+    "fat": 11.8,
+    "carb": 0.0,
+    "pieceGrams": 40
+  },
+  {
+    "name": "鸡肉",
+    "aliases": [
+      "鸡",
+      "土鸡"
+    ],
+    "kcal": 167,
+    "protein": 19.3,
+    "fat": 9.4,
+    "carb": 0.0
+  },
+  {
+    "name": "鸭肉",
+    "aliases": [
+      "鸭"
+    ],
+    "kcal": 240,
+    "protein": 15.5,
+    "fat": 19.7,
+    "carb": 0.0
+  },
+  {
+    "name": "鸡蛋",
+    "aliases": [
+      "蛋",
+      "鸡子"
+    ],
+    "kcal": 144,
+    "protein": 13.3,
+    "fat": 8.8,
+    "carb": 2.8,
+    "pieceGrams": 50
+  },
+  {
+    "name": "鸭蛋",
+    "kcal": 180,
+    "protein": 12.6,
+    "fat": 13.0,
+    "carb": 3.1,
+    "pieceGrams": 65
+  },
+  {
+    "name": "香肠",
+    "aliases": [
+      "腊肠",
+      "火腿肠"
+    ],
+    "kcal": 508,
+    "protein": 24.1,
+    "fat": 40.7,
+    "carb": 11.2
+  },
+  {
+    "name": "培根",
+    "kcal": 181,
+    "protein": 25.4,
+    "fat": 7.0,
+    "carb": 3.5
+  },
+  {
+    "name": "草鱼",
+    "aliases": [
+      "鲩鱼"
+    ],
+    "kcal": 113,
+    "protein": 16.6,
+    "fat": 5.2,
+    "carb": 0.0
+  },
+  {
+    "name": "鲤鱼",
+    "kcal": 109,
+    "protein": 17.6,
+    "fat": 4.1,
+    "carb": 0.0
+  },
+  {
+    "name": "带鱼",
+    "kcal": 127,
+    "protein": 17.7,
+    "fat": 4.9,
+    "carb": 3.1
+  },
+  {
+    "name": "鲈鱼",
+    "kcal": 105,
+    "protein": 18.6,
+    "fat": 3.4,
+    "carb": 0.0
+  },
+  {
+    "name": "巴沙鱼",
+    "aliases": [
+      "龙利鱼"
+    ],
+    "kcal": 89,
+    "protein": 16.0,
+    "fat": 2.5,
+    "carb": 0.0
+  },
+  {
+    "name": "虾",
+    "aliases": [
+      "基围虾",
+      "青虾",
+      "海虾",
+      "虾仁"
+    ],
+    "kcal": 93,
+    "protein": 18.6,
+    "fat": 0.8,
+    "carb": 2.8
+  },
+  {
+    "name": "蟹",
+    "aliases": [
+      "螃蟹",
+      "大闸蟹"
+    ],
+    "kcal": 103,
+    "protein": 17.5,
+    "fat": 2.6,
+    "carb": 2.3
+  },
+  {
+    "name": "鱿鱼",
+    "aliases": [
+      "鲜鱿"
+    ],
+    "kcal": 75,
+    "protein": 17.0,
+    "fat": 0.8,
+    "carb": 0.0
+  },
+  {
+    "name": "鱼豆腐",
+    "kcal": 160,
+    "protein": 10.0,
+    "fat": 8.0,
+    "carb": 12.0
+  },
+  {
+    "name": "豆腐",
+    "aliases": [
+      "嫩豆腐",
+      "老豆腐",
+      "北豆腐",
+      "南豆腐"
+    ],
+    "kcal": 81,
+    "protein": 8.1,
+    "fat": 3.7,
+    "carb": 4.2
+  },
+  {
+    "name": "豆腐干",
+    "aliases": [
+      "豆干"
+    ],
+    "kcal": 140,
+    "protein": 16.2,
+    "fat": 3.6,
+    "carb": 11.5
+  },
+  {
+    "name": "豆浆",
+    "kcal": 14,
+    "protein": 1.8,
+    "fat": 0.7,
+    "carb": 1.1
+  },
+  {
+    "name": "腐竹",
+    "kcal": 459,
+    "protein": 44.6,
+    "fat": 17.4,
+    "carb": 22.7
+  },
+  {
+    "name": "大米",
+    "aliases": [
+      "米",
+      "粳米",
+      "籼米"
+    ],
+    "kcal": 346,
+    "protein": 7.4,
+    "fat": 0.8,
+    "carb": 77.9
+  },
+  {
+    "name": "米饭",
+    "aliases": [
+      "白饭",
+      "剩饭"
+    ],
+    "kcal": 116,
+    "protein": 2.6,
+    "fat": 0.3,
+    "carb": 25.9
+  },
+  {
+    "name": "糯米",
+    "kcal": 348,
+    "protein": 7.3,
+    "fat": 1.0,
+    "carb": 78.3
+  },
+  {
+    "name": "面粉",
+    "aliases": [
+      "中筋面粉",
+      "低筋面粉",
+      "高筋面粉",
+      "小麦粉"
+    ],
+    "kcal": 344,
+    "protein": 11.2,
+    "fat": 1.1,
+    "carb": 73.6
+  },
+  {
+    "name": "面条",
+    "aliases": [
+      "挂面",
+      "鲜面"
+    ],
+    "kcal": 284,
+    "protein": 8.3,
+    "fat": 0.7,
+    "carb": 61.9
+  },
+  {
+    "name": "意大利面",
+    "aliases": [
+      "意面"
+    ],
+    "kcal": 351,
+    "protein": 13.0,
+    "fat": 1.5,
+    "carb": 72.0
+  },
+  {
+    "name": "馒头",
+    "kcal": 223,
+    "protein": 7.0,
+    "fat": 1.1,
+    "carb": 47.0,
+    "pieceGrams": 80
+  },
+  {
+    "name": "包子",
+    "kcal": 226,
+    "protein": 6.6,
+    "fat": 4.7,
+    "carb": 40.0,
+    "pieceGrams": 80
+  },
+  {
+    "name": "饺子皮",
+    "kcal": 271,
+    "protein": 6.6,
+    "fat": 0.8,
+    "carb": 60.0
+  },
+  {
+    "name": "米粉",
+    "aliases": [
+      "河粉",
+      "米线"
+    ],
+    "kcal": 346,
+    "protein": 0.8,
+    "fat": 0.2,
+    "carb": 85.0
+  },
+  {
+    "name": "粉丝",
+    "aliases": [
+      "粉条",
+      "红薯粉"
+    ],
+    "kcal": 335,
+    "protein": 0.5,
+    "fat": 0.1,
+    "carb": 83.0
+  },
+  {
+    "name": "年糕",
+    "kcal": 154,
+    "protein": 2.8,
+    "fat": 0.4,
+    "carb": 35.0
+  },
+  {
+    "name": "玉米",
+    "aliases": [
+      "甜玉米"
+    ],
+    "kcal": 112,
+    "protein": 4.0,
+    "fat": 1.2,
+    "carb": 22.8,
+    "pieceGrams": 200
+  },
+  {
+    "name": "土豆",
+    "aliases": [
+      "马铃薯",
+      "洋芋"
+    ],
+    "kcal": 81,
+    "protein": 2.0,
+    "fat": 0.2,
+    "carb": 17.8,
+    "pieceGrams": 150
+  },
+  {
+    "name": "红薯",
+    "aliases": [
+      "地瓜",
+      "白薯"
+    ],
+    "kcal": 99,
+    "protein": 1.1,
+    "fat": 0.2,
+    "carb": 24.7
+  },
+  {
+    "name": "山药",
+    "kcal": 57,
+    "protein": 1.9,
+    "fat": 0.2,
+    "carb": 12.4
+  },
+  {
+    "name": "芋头",
+    "kcal": 79,
+    "protein": 2.2,
+    "fat": 0.2,
+    "carb": 18.1
+  },
+  {
+    "name": "白菜",
+    "aliases": [
+      "大白菜",
+      "小白菜"
+    ],
+    "kcal": 17,
+    "protein": 1.5,
+    "fat": 0.1,
+    "carb": 3.2
+  },
+  {
+    "name": "娃娃菜",
+    "kcal": 15,
+    "protein": 1.7,
+    "fat": 0.1,
+    "carb": 2.4
+  },
+  {
+    "name": "生菜",
+    "aliases": [
+      "油麦菜",
+      "罗马生菜"
+    ],
+    "kcal": 16,
+    "protein": 1.3,
+    "fat": 0.3,
+    "carb": 2.4
+  },
+  {
+    "name": "油菜",
+    "aliases": [
+      "青菜",
+      "菜心"
+    ],
+    "kcal": 23,
+    "protein": 1.8,
+    "fat": 0.5,
+    "carb": 3.8
+  },
+  {
+    "name": "菠菜",
+    "kcal": 24,
+    "protein": 2.6,
+    "fat": 0.3,
+    "carb": 4.5
+  },
+  {
+    "name": "芹菜",
+    "aliases": [
+      "西芹"
+    ],
+    "kcal": 20,
+    "protein": 1.2,
+    "fat": 0.2,
+    "carb": 4.3
+  },
+  {
+    "name": "韭菜",
+    "kcal": 27,
+    "protein": 2.4,
+    "fat": 0.4,
+    "carb": 4.5
+  },
+  {
+    "name": "蒜苗",
+    "aliases": [
+      "青蒜"
+    ],
+    "kcal": 61,
+    "protein": 2.1,
+    "fat": 0.4,
+    "carb": 13.6
+  },
+  {
+    "name": "葱",
+    "aliases": [
+      "大葱",
+      "小葱",
+      "香葱",
+      "葱花",
+      "葱段"
+    ],
+    "kcal": 30,
+    "protein": 1.7,
+    "fat": 0.3,
+    "carb": 6.5
+  },
+  {
+    "name": "洋葱",
+    "aliases": [
+      "葱头"
+    ],
+    "kcal": 39,
+    "protein": 1.1,
+    "fat": 0.2,
+    "carb": 9.0,
+    "pieceGrams": 150
+  },
+  {
+    "name": "姜",
+    "aliases": [
+      "生姜",
+      "姜片",
+      "姜末",
+      "黄姜"
+    ],
+    "kcal": 41,
+    "protein": 1.3,
+    "fat": 0.6,
+    "carb": 8.7,
+    "pieceGrams": 5
+  },
+  {
+    "name": "蒜",
+    "aliases": [
+      "大蒜",
+      "蒜蓉",
+      "蒜末",
+      "蒜瓣"
+    ],
+    "kcal": 126,
+    "protein": 4.5,
+    "fat": 0.2,
+    "carb": 27.6,
+    "pieceGrams": 5
+  },
+  {
+    "name": "辣椒",
+    "aliases": [
+      "青椒",
+      "红椒",
+      "彩椒",
+      "柿子椒",
+      "尖椒"
+    ],
+    "kcal": 22,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carb": 5.4,
+    "pieceGrams": 40
+  },
+  {
+    "name": "番茄",
+    "aliases": [
+      "西红柿",
+      "蕃茄"
+    ],
+    "kcal": 19,
+    "protein": 0.9,
+    "fat": 0.2,
+    "carb": 4.0,
+    "pieceGrams": 150
+  },
+  {
+    "name": "黄瓜",
+    "aliases": [
+      "青瓜"
+    ],
+    "kcal": 16,
+    "protein": 0.8,
+    "fat": 0.2,
+    "carb": 2.9,
+    "pieceGrams": 150
+  },
+  {
+    "name": "茄子",
+    "kcal": 23,
+    "protein": 1.1,
+    "fat": 0.2,
+    "carb": 4.9,
+    "pieceGrams": 200
+  },
+  {
+    "name": "冬瓜",
+    "kcal": 11,
+    "protein": 0.4,
+    "fat": 0.2,
+    "carb": 2.4
+  },
+  {
+    "name": "南瓜",
+    "kcal": 23,
+    "protein": 0.7,
+    "fat": 0.1,
+    "carb": 5.3
+  },
+  {
+    "name": "丝瓜",
+    "kcal": 20,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carb": 4.2
+  },
+  {
+    "name": "苦瓜",
+    "kcal": 19,
+    "protein": 1.0,
+    "fat": 0.1,
+    "carb": 4.9
+  },
+  {
+    "name": "萝卜",
+    "aliases": [
+      "白萝卜",
+      "青萝卜"
+    ],
+    "kcal": 16,
+    "protein": 0.7,
+    "fat": 0.1,
+    "carb": 4.0
+  },
+  {
+    "name": "胡萝卜",
+    "aliases": [
+      "红萝卜"
+    ],
+    "kcal": 37,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carb": 8.8
+  },
+  {
+    "name": "莲藕",
+    "aliases": [
+      "藕"
+    ],
+    "kcal": 44,
+    "protein": 1.9,
+    "fat": 0.2,
+    "carb": 11.5
+  },
+  {
+    "name": "西兰花",
+    "aliases": [
+      "青花菜"
+    ],
+    "kcal": 36,
+    "protein": 4.1,
+    "fat": 0.6,
+    "carb": 4.3
+  },
+  {
+    "name": "花菜",
+    "aliases": [
+      "菜花",
+      "花椰菜"
+    ],
+    "kcal": 20,
+    "protein": 1.7,
+    "fat": 0.2,
+    "carb": 4.2
+  },
+  {
+    "name": "豆角",
+    "aliases": [
+      "豇豆",
+      "四季豆",
+      "芸豆"
+    ],
+    "kcal": 30,
+    "protein": 2.5,
+    "fat": 0.2,
+    "carb": 6.0
+  },
+  {
+    "name": "扁豆",
+    "kcal": 37,
+    "protein": 2.7,
+    "fat": 0.2,
+    "carb": 8.2
+  },
+  {
+    "name": "毛豆",
+    "kcal": 131,
+    "protein": 13.1,
+    "fat": 5.0,
+    "carb": 10.5
+  },
+  {
+    "name": "豌豆",
+    "kcal": 105,
+    "protein": 7.4,
+    "fat": 0.3,
+    "carb": 21.2
+  },
+  {
+    "name": "玉米笋",
+    "kcal": 32,
+    "protein": 2.0,
+    "fat": 0.2,
+    "carb": 7.0
+  },
+  {
+    "name": "竹笋",
+    "aliases": [
+      "笋",
+      "冬笋",
+      "春笋"
+    ],
+    "kcal": 27,
+    "protein": 2.6,
+    "fat": 0.2,
+    "carb": 4.8
+  },
+  {
+    "name": "莴笋",
+    "aliases": [
+      "莴苣"
+    ],
+    "kcal": 15,
+    "protein": 1.0,
+    "fat": 0.1,
+    "carb": 2.8
+  },
+  {
+    "name": "芦笋",
+    "kcal": 18,
+    "protein": 2.2,
+    "fat": 0.1,
+    "carb": 3.5
+  },
+  {
+    "name": "蘑菇",
+    "aliases": [
+      "香菇",
+      "金针菇",
+      "平菇",
+      "杏鲍菇",
+      "口蘑",
+      "鲜蘑"
+    ],
+    "kcal": 26,
+    "protein": 2.2,
+    "fat": 0.3,
+    "carb": 4.3
+  },
+  {
+    "name": "木耳",
+    "aliases": [
+      "黑木耳",
+      "云耳"
+    ],
+    "kcal": 27,
+    "protein": 1.5,
+    "fat": 0.2,
+    "carb": 6.0
+  },
+  {
+    "name": "银耳",
+    "aliases": [
+      "白木耳"
+    ],
+    "kcal": 200,
+    "protein": 10.0,
+    "fat": 1.4,
+    "carb": 67.3
+  },
+  {
+    "name": "海带",
+    "aliases": [
+      "昆布"
+    ],
+    "kcal": 13,
+    "protein": 1.2,
+    "fat": 0.1,
+    "carb": 2.1
+  },
+  {
+    "name": "紫菜",
+    "kcal": 207,
+    "protein": 26.7,
+    "fat": 1.1,
+    "carb": 22.5
+  },
+  {
+    "name": "豆芽",
+    "aliases": [
+      "黄豆芽",
+      "绿豆芽"
+    ],
+    "kcal": 18,
+    "protein": 2.1,
+    "fat": 0.1,
+    "carb": 2.6
+  },
+  {
+    "name": "藕",
+    "kcal": 44,
+    "protein": 1.9,
+    "fat": 0.2,
+    "carb": 11.5
+  },
+  {
+    "name": "香菜",
+    "aliases": [
+      "芫荽"
+    ],
+    "kcal": 31,
+    "protein": 2.0,
+    "fat": 0.3,
+    "carb": 5.0
+  },
+  {
+    "name": "豆苗",
+    "kcal": 31,
+    "protein": 3.0,
+    "fat": 0.4,
+    "carb": 4.0
+  },
+  {
+    "name": "苹果",
+    "kcal": 53,
+    "protein": 0.3,
+    "fat": 0.2,
+    "carb": 13.7,
+    "pieceGrams": 200
+  },
+  {
+    "name": "香蕉",
+    "kcal": 93,
+    "protein": 1.4,
+    "fat": 0.2,
+    "carb": 22.0,
+    "pieceGrams": 120
+  },
+  {
+    "name": "梨",
+    "kcal": 44,
+    "protein": 0.4,
+    "fat": 0.2,
+    "carb": 13.1,
+    "pieceGrams": 200
+  },
+  {
+    "name": "橙子",
+    "aliases": [
+      "橘",
+      "桔子",
+      "脐橙"
+    ],
+    "kcal": 48,
+    "protein": 0.8,
+    "fat": 0.2,
+    "carb": 11.1,
+    "pieceGrams": 200
+  },
+  {
+    "name": "葡萄",
+    "kcal": 44,
+    "protein": 0.5,
+    "fat": 0.2,
+    "carb": 10.3
+  },
+  {
+    "name": "西瓜",
+    "kcal": 31,
+    "protein": 0.5,
+    "fat": 0.1,
+    "carb": 7.9
+  },
+  {
+    "name": "草莓",
+    "kcal": 32,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carb": 7.1
+  },
+  {
+    "name": "柠檬",
+    "kcal": 35,
+    "protein": 1.1,
+    "fat": 1.0,
+    "carb": 4.9,
+    "pieceGrams": 80
+  },
+  {
+    "name": "牛奶",
+    "aliases": [
+      "纯牛奶"
+    ],
+    "kcal": 54,
+    "protein": 3.0,
+    "fat": 3.2,
+    "carb": 3.4
+  },
+  {
+    "name": "酸奶",
+    "kcal": 72,
+    "protein": 2.5,
+    "fat": 2.7,
+    "carb": 9.3
+  },
+  {
+    "name": "奶酪",
+    "aliases": [
+      "芝士",
+      "干酪"
+    ],
+    "kcal": 328,
+    "protein": 25.7,
+    "fat": 23.5,
+    "carb": 3.5
+  },
+  {
+    "name": "黄油",
+    "aliases": [
+      "牛油"
+    ],
+    "kcal": 888,
+    "protein": 1.4,
+    "fat": 98.0,
+    "carb": 0.0
+  },
+  {
+    "name": "黄豆",
+    "aliases": [
+      "大豆"
+    ],
+    "kcal": 359,
+    "protein": 35.0,
+    "fat": 16.0,
+    "carb": 18.7
+  },
+  {
+    "name": "花生",
+    "aliases": [
+      "花生米"
+    ],
+    "kcal": 563,
+    "protein": 24.8,
+    "fat": 44.3,
+    "carb": 21.7
+  },
+  {
+    "name": "芝麻",
+    "aliases": [
+      "白芝麻",
+      "黑芝麻"
+    ],
+    "kcal": 517,
+    "protein": 19.1,
+    "fat": 46.1,
+    "carb": 16.8
+  },
+  {
+    "name": "核桃",
+    "kcal": 646,
+    "protein": 14.9,
+    "fat": 58.8,
+    "carb": 19.2
+  },
+  {
+    "name": "食用油",
+    "aliases": [
+      "油",
+      "菜籽油",
+      "花生油",
+      "大豆油",
+      "玉米油",
+      "调和油",
+      "色拉油"
+    ],
+    "kcal": 899,
+    "protein": 0.0,
+    "fat": 99.9,
+    "carb": 0.0
+  },
+  {
+    "name": "橄榄油",
+    "kcal": 899,
+    "protein": 0.0,
+    "fat": 99.9,
+    "carb": 0.0
+  },
+  {
+    "name": "香油",
+    "aliases": [
+      "麻油",
+      "芝麻油"
+    ],
+    "kcal": 898,
+    "protein": 0.0,
+    "fat": 99.7,
+    "carb": 0.2
+  },
+  {
+    "name": "猪油",
+    "aliases": [
+      "板油"
+    ],
+    "kcal": 897,
+    "protein": 0.0,
+    "fat": 99.6,
+    "carb": 0.2
+  },
+  {
+    "name": "盐",
+    "aliases": [
+      "食盐",
+      "精盐",
+      "碘盐"
+    ],
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "味精",
+    "aliases": [
+      "鸡精",
+      "味素"
+    ],
+    "kcal": 8,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "胡椒",
+    "aliases": [
+      "胡椒粉",
+      "黑胡椒",
+      "白胡椒"
+    ],
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "花椒",
+    "aliases": [
+      "花椒粉"
+    ],
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "八角",
+    "aliases": [
+      "大料"
+    ],
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "桂皮",
+    "aliases": [
+      "肉桂"
+    ],
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "香叶",
+    "kcal": 0,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 0.0,
+    "zeroEnergy": true
+  },
+  {
+    "name": "干辣椒",
+    "aliases": [
+      "辣椒面",
+      "辣椒粉",
+      "辣椒油"
+    ],
+    "kcal": 50,
+    "protein": 2.0,
+    "fat": 2.0,
+    "carb": 8.0
+  },
+  {
+    "name": "酱油",
+    "aliases": [
+      "生抽",
+      "老抽",
+      "味极鲜",
+      "蒸鱼豉油"
+    ],
+    "kcal": 63,
+    "protein": 5.6,
+    "fat": 0.1,
+    "carb": 10.1
+  },
+  {
+    "name": "醋",
+    "aliases": [
+      "米醋",
+      "陈醋",
+      "香醋",
+      "白醋"
+    ],
+    "kcal": 31,
+    "protein": 2.1,
+    "fat": 0.3,
+    "carb": 4.9
+  },
+  {
+    "name": "料酒",
+    "aliases": [
+      "黄酒",
+      "米酒"
+    ],
+    "kcal": 66,
+    "protein": 0.5,
+    "fat": 0.0,
+    "carb": 4.0
+  },
+  {
+    "name": "蚝油",
+    "kcal": 80,
+    "protein": 5.0,
+    "fat": 0.5,
+    "carb": 14.0
+  },
+  {
+    "name": "豆瓣酱",
+    "aliases": [
+      "郫县豆瓣",
+      "豆瓣"
+    ],
+    "kcal": 172,
+    "protein": 7.0,
+    "fat": 8.0,
+    "carb": 18.0
+  },
+  {
+    "name": "甜面酱",
+    "kcal": 203,
+    "protein": 5.0,
+    "fat": 2.0,
+    "carb": 42.0
+  },
+  {
+    "name": "豆豉",
+    "kcal": 214,
+    "protein": 24.0,
+    "fat": 3.0,
+    "carb": 26.0
+  },
+  {
+    "name": "腐乳",
+    "kcal": 158,
+    "protein": 12.0,
+    "fat": 8.0,
+    "carb": 7.6
+  },
+  {
+    "name": "番茄酱",
+    "aliases": [
+      "番茄沙司",
+      "ketchup"
+    ],
+    "kcal": 83,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carb": 19.0
+  },
+  {
+    "name": "糖",
+    "aliases": [
+      "白糖",
+      "冰糖",
+      "绵白糖",
+      "砂糖",
+      "红糖"
+    ],
+    "kcal": 400,
+    "protein": 0.0,
+    "fat": 0.0,
+    "carb": 99.9
+  },
+  {
+    "name": "蜂蜜",
+    "kcal": 321,
+    "protein": 0.4,
+    "fat": 1.9,
+    "carb": 75.6
+  },
+  {
+    "name": "淀粉",
+    "aliases": [
+      "生粉",
+      "玉米淀粉",
+      "土豆淀粉",
+      "木薯淀粉"
+    ],
+    "kcal": 346,
+    "protein": 0.3,
+    "fat": 0.1,
+    "carb": 85.0
+  },
+  {
+    "name": "鸡汤",
+    "aliases": [
+      "高汤",
+      "骨汤"
+    ],
+    "kcal": 16,
+    "protein": 1.5,
+    "fat": 0.8,
+    "carb": 0.5
+  },
+  {
+    "name": "椰奶",
+    "aliases": [
+      "椰浆"
+    ],
+    "kcal": 224,
+    "protein": 2.3,
+    "fat": 22.0,
+    "carb": 6.0
+  }
+]

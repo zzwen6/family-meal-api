@@ -59,6 +59,21 @@ export const api = {
   updateDish: (id, body) => request('PUT', `${f()}/dishes/${id}`, body),
   deactivateDish: (id) => request('DELETE', `${f()}/dishes/${id}`),
   restoreDish: (id) => request('POST', `${f()}/dishes/${id}/restore`),
+  async uploadMedia(file) {
+    const headers = { Accept: 'application/json' }
+    if (auth.token) headers.Authorization = `Bearer ${auth.token}`
+    const body = new FormData()
+    body.append('file', file)
+    const res = await fetch(`${f()}/media`, { method: 'POST', headers, body })
+    const text = await res.text()
+    const data = text ? JSON.parse(text) : null
+    if (!res.ok) {
+      const msg = data?.message || `上传失败（${res.status}）`
+      ElMessage.error(msg)
+      throw new Error(msg)
+    }
+    return data
+  },
   calendar: (from, to) => request('GET', `${f()}/menus?from=${from}&to=${to}`),
   /** 临时聚餐在家庭日历上的占位（只有标题、发起人，不含聚餐详情） */
   gatheringSlots: (from, to) => request('GET', `${f()}/gatherings?from=${from}&to=${to}`),
@@ -73,6 +88,7 @@ export const api = {
   createInventory: (body) => request('POST', `${f()}/inventory`, body),
   updateInventory: (id, body) => request('PUT', `${f()}/inventory/${id}`, body),
   deleteInventory: (id) => request('DELETE', `${f()}/inventory/${id}`),
+  inventoryLedger: (limit = 20) => request('GET', `${f()}/inventory/ledger?limit=${limit}`),
   leftovers: (used) => request('GET', `${f()}/leftovers` + (used === undefined ? '' : `?used=${used}`)),
   createLeftover: (body) => request('POST', `${f()}/leftovers`, body),
   updateLeftover: (id, body) => request('PUT', `${f()}/leftovers/${id}`, body),
@@ -102,4 +118,19 @@ export const INTENSITY_LABELS = { WANT: '很想吃', OK: '都可以', AVOID: '�
 export function fmtDate(d) {
   const p = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+export function mediaSrc(url) {
+  if (!url) return ''
+  if (!String(url).includes('/media/')) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return auth.token ? `${url}${sep}access_token=${encodeURIComponent(auth.token)}` : url
+}
+
+export const LEDGER_LABELS = {
+  PURCHASE: '采购入账',
+  PURCHASE_REVERT: '取消已买',
+  LEFTOVER_USE: '用掉剩菜',
+  MEAL_READY: '开饭用掉',
+  MANUAL: '手工调整',
 }

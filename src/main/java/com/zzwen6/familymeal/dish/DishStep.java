@@ -16,6 +16,10 @@ public class DishStep {
     @Column(nullable = false, length = 1000)
     private String content;
     private Integer durationMinutes;
+    private String imageUrl;
+    private String videoUrl;
+    private String videoCoverUrl;
+    private Integer videoDurationSeconds;
 
     public Long getId() { return id; }
     public Dish getDish() { return dish; }
@@ -26,4 +30,12 @@ public class DishStep {
     public void setContent(String content) { this.content = content; }
     public Integer getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    public String getVideoCoverUrl() { return videoCoverUrl; }
+    public void setVideoCoverUrl(String videoCoverUrl) { this.videoCoverUrl = videoCoverUrl; }
+    public Integer getVideoDurationSeconds() { return videoDurationSeconds; }
+    public void setVideoDurationSeconds(Integer videoDurationSeconds) { this.videoDurationSeconds = videoDurationSeconds; }
 }

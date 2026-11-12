@@ -43,8 +43,11 @@ mkdir -p /volume1/docker/family-meal && cd /volume1/docker/family-meal
 # 放入本仓库的 docker-compose.yml 和 .env.example
 cp .env.example .env
 # 先在已有 MySQL 上建好空库 family_meal 和账号（字符集 utf8mb4），表由 Flyway 启动时创建
-vi .env     # 填写 MYSQL_HOST/PORT/USER/PASSWORD、REDIS_HOST/PORT/PASSWORD、JWT_SECRET、ADMIN_PASSWORD、WECHAT_APPID/SECRET、CORS_ALLOWED_ORIGINS
+vi .env     # 填写 MYSQL_HOST/PORT/USER/PASSWORD、REDIS_HOST/PORT/PASSWORD、JWT_SECRET、ADMIN_PASSWORD、WECHAT_APPID/SECRET、CORS_ALLOWED_ORIGINS、MEDIA_DIR
 # MYSQL_HOST / REDIS_HOST：库在 NAS 本机上用 host.docker.internal；在其他容器里填容器名或 IP，必要时把 api 加入同一 Docker 网络
+# 菜谱封面和步骤媒体目录（需对容器用户 UID 1000 可写），例如：
+#   mkdir -p /volume1/docker/family-meal/media && chown 1000:1000 /volume1/docker/family-meal/media
+#   再在 .env 里设 MEDIA_DIR=/volume1/docker/family-meal/media
 
 docker compose pull
 docker compose up -d
@@ -54,17 +57,19 @@ docker compose logs -f api      # 看到 Started FamilyMealApplication 即可
 - 默认宿主机端口 `8090`（`HTTP_PORT`），因为 8080 已被 opds-library 占用。
 - 管理后台：`http://<NAS>:8090/admin/`，用 `.env` 里的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登录。
 - 健康检查：`http://<NAS>:8090/actuator/health`。
-- 数据在你独立部署的 MySQL 和 Redis 里，按原有方式备份即可（MySQL 建议用 `mysqldump`）。
+- 数据在你独立部署的 MySQL 和 Redis 里，按原有方式备份即可（MySQL 建议用 `mysqldump`）。菜谱封面和步骤图/视频在 `MEDIA_DIR` 挂载的目录里，请一并备份；容器重建不会丢失（只要卷还在）。
 
 Watchtower 从容器内的 `/config.json` 读 GHCR 登录信息（opds-library 的 Compose 已挂载 `/root/.docker/config.json`）。所以在 NAS 上用 root（群晖一般是 `sudo docker login`）登录一次 ghcr.io，Watchtower 就能拉本项目的镜像。GHCR 包首次推送后如果是私有，也可以在 GitHub → Packages → family-meal-api → Package settings 里改成 Public，这样不登录也能拉。
 
 ## 3. 对外访问（小程序必须 HTTPS）
 
-微信小程序只允许请求已备案、HTTPS 的「request 合法域名」。在 NAS 的 nginx / 反向代理里给 `api` 容器（`http://127.0.0.1:8090`）配一个 HTTPS 域名，例如 `https://meal.example.com`，然后：
+微信小程序只允许请求已备案、HTTPS 的合法域名。在 NAS 的 nginx / 反向代理里给 `api` 容器（`http://127.0.0.1:8090`）配一个 HTTPS 域名，例如 `https://meal.example.com`，然后：
 
-1. 小程序后台「开发管理 → 开发设置 → 服务器域名」里把它加到 **request 合法域名**；
+1. 小程序后台「开发管理 → 开发设置 → 服务器域名」里把该域名同时加到 **request、uploadFile、downloadFile** 合法域名（封面和步骤图/视频走同一个 API 域名上传和下载，少配后两项目录图片和视频会加载失败）；
 2. 前端 `family-meal-app` 的 `.env` 里设 `VITE_API_BASE=https://meal.example.com`；
 3. 如果 H5 和 API 不同域，把 H5 的域名加到后端 `CORS_ALLOWED_ORIGINS`。
+
+媒体文件需要登录才能访问（请求头 Bearer，或 URL 查询参数 `access_token`），目录不会公开可遍历。图片默认不超过 5MB，短视频不超过 30MB。
 
 ## 4. 手动触发 / 回滚
 

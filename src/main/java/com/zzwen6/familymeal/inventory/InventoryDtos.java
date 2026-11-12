@@ -39,4 +39,13 @@ public final class InventoryDtos {
             @Size(max = 16) String unit,
             LocalDate expiresOn,
             @Size(max = 255) String note) {}
+
+    public record LedgerView(Long id, Long inventoryItemId, String sourceType, Long sourceId, String name,
+                             String unit, java.math.BigDecimal delta, java.math.BigDecimal balanceAfter,
+                             String note, java.time.LocalDateTime createdAt) {
+        public static LedgerView of(InventoryLedger l) {
+            return new LedgerView(l.getId(), l.getInventoryItemId(), l.getSourceType().name(), l.getSourceId(),
+                    l.getName(), l.getUnit(), l.getDelta(), l.getBalanceAfter(), l.getNote(), l.getCreatedAt());
+        }
+    }
 }

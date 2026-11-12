@@ -26,6 +26,10 @@ public class Leftover extends BaseTimeEntity {
     private boolean used;
     private LocalDateTime usedAt;
     private Long usedMenuId;
+    @Column(nullable = false)
+    private boolean inventoryDeducted;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal inventoryDeductedAmount;
     private String note;
 
     public Long getId() { return id; }
@@ -47,6 +51,10 @@ public class Leftover extends BaseTimeEntity {
     public void setUsedAt(LocalDateTime usedAt) { this.usedAt = usedAt; }
     public Long getUsedMenuId() { return usedMenuId; }
     public void setUsedMenuId(Long usedMenuId) { this.usedMenuId = usedMenuId; }
+    public boolean isInventoryDeducted() { return inventoryDeducted; }
+    public void setInventoryDeducted(boolean inventoryDeducted) { this.inventoryDeducted = inventoryDeducted; }
+    public BigDecimal getInventoryDeductedAmount() { return inventoryDeductedAmount; }
+    public void setInventoryDeductedAmount(BigDecimal inventoryDeductedAmount) { this.inventoryDeductedAmount = inventoryDeductedAmount; }
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 }

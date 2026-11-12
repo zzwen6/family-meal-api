@@ -46,7 +46,7 @@ RUN set -eux; \
     if getent passwd ubuntu >/dev/null; then userdel -r ubuntu || true; fi; \
     if ! getent group "${PGID}" >/dev/null; then groupadd -g "${PGID}" app; fi; \
     useradd -u "${PUID}" -g "${PGID}" -M -d /app -s /usr/sbin/nologin app; \
-    mkdir -p /app && chown "${PUID}:${PGID}" /app
+    mkdir -p /app /data/media && chown "${PUID}:${PGID}" /app /data/media
 WORKDIR /app
 COPY --from=build --chown=${PUID}:${PGID} /build/app.jar /app/app.jar
 USER ${PUID}:${PGID}

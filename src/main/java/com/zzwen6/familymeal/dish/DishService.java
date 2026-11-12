@@ -6,19 +6,27 @@ import com.zzwen6.familymeal.common.Enums.IngredientKind;
 import com.zzwen6.familymeal.dish.DishDtos.*;
 import com.zzwen6.familymeal.family.FamilyAccess;
 import com.zzwen6.familymeal.family.FamilyMember;
+import com.zzwen6.familymeal.media.MediaService;
+import com.zzwen6.familymeal.nutrition.NutritionDtos.NutritionOverride;
+import com.zzwen6.familymeal.nutrition.NutritionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class DishService {
     private final DishRepository dishes;
     private final FamilyAccess access;
+    private final NutritionService nutrition;
+    private final MediaService media;
 
-    public DishService(DishRepository dishes, FamilyAccess access) {
+    public DishService(DishRepository dishes, FamilyAccess access, NutritionService nutrition, MediaService media) {
         this.dishes = dishes;
         this.access = access;
+        this.nutrition = nutrition;
+        this.media = media;
     }
 
     @Transactional(readOnly = true)
@@ -57,8 +65,10 @@ public class DishService {
     public DishDetail update(Long familyId, Long dishId, DishRequest req) {
         access.cook(familyId);
         Dish d = find(familyId, dishId);
+        List<String> oldMedia = collectMedia(d);
         apply(d, req);
         dishes.saveAndFlush(d);
+        media.deleteUnused(familyId, oldMedia, collectMedia(d));
         return toDetail(d, d.getDefaultServings());
     }
 
@@ -82,6 +92,7 @@ public class DishService {
         d.setCoverUrl(blankToNull(req.coverUrl()));
         d.setDescription(blankToNull(req.description()));
         d.setTips(blankToNull(req.tips()));
+        applyNutrition(d, req.nutrition());
 
         d.getSteps().clear();
         if (req.steps() != null) {
@@ -92,6 +103,10 @@ public class DishService {
                 st.setStepNo(no++);
                 st.setContent(s.content().trim());
                 st.setDurationMinutes(s.durationMinutes());
+                st.setImageUrl(blankToNull(s.imageUrl()));
+                st.setVideoUrl(blankToNull(s.videoUrl()));
+                st.setVideoCoverUrl(blankToNull(s.videoCoverUrl()));
+                st.setVideoDurationSeconds(s.videoDurationSeconds());
                 d.getSteps().add(st);
             }
         }
@@ -120,14 +135,42 @@ public class DishService {
 
     public DishDetail toDetail(Dish d, int servings) {
         List<StepView> steps = d.getSteps().stream()
-                .map(s -> new StepView(s.getStepNo(), s.getContent(), s.getDurationMinutes())).toList();
+                .map(s -> new StepView(s.getStepNo(), s.getContent(), s.getDurationMinutes(),
+                        s.getImageUrl(), s.getVideoUrl(), s.getVideoCoverUrl(), s.getVideoDurationSeconds())).toList();
         List<IngredientView> main = d.getIngredients().stream().filter(i -> i.getKind() == IngredientKind.MAIN)
                 .map(i -> view(i, servings, d.getDefaultServings())).toList();
         List<IngredientView> seasonings = d.getIngredients().stream().filter(i -> i.getKind() == IngredientKind.SEASONING)
                 .map(i -> view(i, servings, d.getDefaultServings())).toList();
         return new DishDetail(d.getId(), d.getName(), d.getCategory(), d.getDifficulty(), d.getDurationMinutes(),
                 d.getDefaultServings(), servings, d.getCoverUrl(), d.getDescription(), d.getTips(), d.isActive(),
-                steps, main, seasonings, d.getUpdatedAt());
+                steps, main, seasonings, nutrition.ofDish(d, servings), d.isNutritionOverride(), d.getUpdatedAt());
+    }
+
+    private static void applyNutrition(Dish d, NutritionOverride n) {
+        if (n != null && Boolean.TRUE.equals(n.enabled())) {
+            d.setNutritionOverride(true);
+            d.setNutritionKcal(n.kcal());
+            d.setNutritionProtein(n.protein());
+            d.setNutritionFat(n.fat());
+            d.setNutritionCarb(n.carb());
+        } else {
+            d.setNutritionOverride(false);
+            d.setNutritionKcal(null);
+            d.setNutritionProtein(null);
+            d.setNutritionFat(null);
+            d.setNutritionCarb(null);
+        }
+    }
+
+    private static List<String> collectMedia(Dish d) {
+        List<String> urls = new ArrayList<>();
+        if (d.getCoverUrl() != null) urls.add(d.getCoverUrl());
+        for (DishStep s : d.getSteps()) {
+            if (s.getImageUrl() != null) urls.add(s.getImageUrl());
+            if (s.getVideoUrl() != null) urls.add(s.getVideoUrl());
+            if (s.getVideoCoverUrl() != null) urls.add(s.getVideoCoverUrl());
+        }
+        return urls;
     }
 
     private static IngredientView view(DishIngredient i, int servings, int def) {

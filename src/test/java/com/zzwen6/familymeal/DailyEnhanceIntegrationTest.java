@@ -288,10 +288,12 @@ class DailyEnhanceIntegrationTest extends IntegrationTestBase {
         JsonNode porkMid = findBy(concat(regenMid.body().get("buyItems"), regenMid.body().get("stapleItems")), "name", "猪脚");
         assertThat(porkMid.get("toBuy").asBoolean()).isFalse();
         assertThat(post(base + "/leftovers/" + lo2id + "/use", mom, Map.of("menuId", menuId)).body().get("used").asBoolean()).isTrue();
-        // 用掉后只剩库存 2000，仍全额覆盖
+        // 用掉名称对得上库存的剩菜「猪脚」会从库存扣 500，剩 1500，不再全额覆盖 2000
+        assertThat(get(base + "/inventory", mom).body().get(0).get("amount").decimalValue()).isEqualByComparingTo("1500");
         Res regen3 = post(base + "/menus/" + menuId + "/shopping-list/regenerate", mom, null);
-        assertThat(findBy(concat(regen3.body().get("buyItems"), regen3.body().get("stapleItems")), "name", "猪脚")
-                .get("toBuy").asBoolean()).isFalse();
+        JsonNode pork3 = findBy(concat(regen3.body().get("buyItems"), regen3.body().get("stapleItems")), "name", "猪脚");
+        assertThat(pork3.get("toBuy").asBoolean()).isTrue();
+        assertThat(pork3.get("amount").decimalValue()).isEqualByComparingTo("500");
     }
 
     @Test

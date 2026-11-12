@@ -3,7 +3,7 @@
     <div class="page-head">
       <h2>库存与剩菜</h2>
     </div>
-    <p class="muted">生成采购清单时会按名称对照这里的库存和未用完剩菜，少买已经有的。对照只计算建议购买量，不会自动改库存数字；用掉剩菜后那一份就不再参与对照。</p>
+    <p class="muted">生成采购清单时会按名称对照库存和未用完剩菜，少买已经有的，但生成时不改库存数字（避免反复生成重复扣）。勾选已买会把购买量增加到库存，取消勾选按入账数量撤回；用掉名称对得上食材的剩菜、以及开饭时会按「对照时家里已有」的量扣库存。也可以随时手工改。</p>
 
     <el-card>
       <template #header>
@@ -64,6 +64,24 @@
       </el-table>
     </el-card>
 
+    <el-card style="margin-top: 20px" v-if="ledger.length">
+      <template #header>最近变动</template>
+      <el-table :data="ledger" size="small">
+        <el-table-column label="类型" width="120">
+          <template #default="{ row }">{{ LEDGER_LABELS[row.sourceType] || row.sourceType }}</template>
+        </el-table-column>
+        <el-table-column prop="name" label="名称" />
+        <el-table-column label="变动" width="120">
+          <template #default="{ row }">{{ row.delta > 0 ? '+' : '' }}{{ row.delta }}{{ row.unit || '' }}</template>
+        </el-table-column>
+        <el-table-column label="结余" width="120">
+          <template #default="{ row }">{{ row.balanceAfter == null ? '—' : row.balanceAfter }}{{ row.unit || '' }}</template>
+        </el-table-column>
+        <el-table-column prop="note" label="说明" />
+        <el-table-column prop="createdAt" label="时间" width="180" />
+      </el-table>
+    </el-card>
+
     <el-dialog v-model="invDlg" :title="invForm.id ? '改库存' : '登记库存'" width="420px">
       <el-form :model="invForm" label-width="80px">
         <el-form-item label="名称"><el-input v-model="invForm.name" maxlength="64" /></el-form-item>
@@ -97,10 +115,11 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { api } from '../api'
+import { api, LEDGER_LABELS } from '../api'
 
 const loading = ref(false)
 const inventory = ref([])
+const ledger = ref([])
 const leftovers = ref([])
 const showUsed = ref(false)
 const family = ref(null)
@@ -115,12 +134,14 @@ async function load() {
   loading.value = true
   try {
     family.value = await api.family()
-    const [inv, lo] = await Promise.all([
+    const [inv, lo, led] = await Promise.all([
       api.inventory(),
       api.leftovers(showUsed.value ? undefined : false),
+      api.inventoryLedger(20),
     ])
     inventory.value = inv
     leftovers.value = lo
+    ledger.value = led
   } finally {
     loading.value = false
   }

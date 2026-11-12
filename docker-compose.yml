@@ -45,7 +45,11 @@ services:
       WECHAT_TPL_TIME_FIELD: ${WECHAT_TPL_TIME_FIELD-time3}
       WECHAT_MINIPROGRAM_STATE: ${WECHAT_MINIPROGRAM_STATE:-formal}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      MEDIA_PATH: /data/media
       JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError}
+    volumes:
+      # 菜谱封面和步骤图/视频，挂到 NAS 本地目录，避免容器重建后丢失
+      - ${MEDIA_DIR:-./data/media}:/data/media
     labels:
       - com.centurylinklabs.watchtower.enable=true
     restart: unless-stopped

@@ -23,6 +23,12 @@ public class InventoryController {
         return inventory.list(familyId);
     }
 
+    @GetMapping("/inventory/ledger")
+    public List<LedgerView> ledger(@PathVariable Long familyId,
+                                   @RequestParam(defaultValue = "20") int limit) {
+        return inventory.ledger(familyId, limit);
+    }
+
     @PostMapping("/inventory")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryView createInventory(@PathVariable Long familyId, @Valid @RequestBody InventoryRequest req) {

@@ -22,12 +22,15 @@ public class LeftoverService {
     private final FamilyAccess access;
     private final MenuRepository menus;
     private final KitchenDuty duty;
+    private final InventoryService inventory;
 
-    public LeftoverService(LeftoverRepository leftovers, FamilyAccess access, MenuRepository menus, KitchenDuty duty) {
+    public LeftoverService(LeftoverRepository leftovers, FamilyAccess access, MenuRepository menus, KitchenDuty duty,
+                           InventoryService inventory) {
         this.leftovers = leftovers;
         this.access = access;
         this.menus = menus;
         this.duty = duty;
+        this.inventory = inventory;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +107,7 @@ public class LeftoverService {
         l.setUsed(true);
         l.setUsedAt(TimeHolder.now());
         l.setUsedMenuId(usedMenuId);
+        inventory.deductForLeftover(l);
     }
 
     private void requireWrite(FamilyMember me, Long menuId) {

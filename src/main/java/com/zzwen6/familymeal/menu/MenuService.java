@@ -13,6 +13,7 @@ import com.zzwen6.familymeal.inventory.LeftoverRepository;
 import com.zzwen6.familymeal.inventory.LeftoverService;
 import com.zzwen6.familymeal.menu.MenuDtos.*;
 import com.zzwen6.familymeal.notify.NotificationService;
+import com.zzwen6.familymeal.nutrition.NutritionService;
 import com.zzwen6.familymeal.rating.MealRatingRepository;
 import com.zzwen6.familymeal.rating.MealRatingService;
 import com.zzwen6.familymeal.rating.RatingDtos.RatingView;
@@ -57,13 +58,15 @@ public class MenuService {
     private final WeekTemplateService templates;
     private final MealRatingService ratingService;
     private final MealRatingRepository ratingRepo;
+    private final NutritionService nutrition;
 
     public MenuService(MenuRepository menus, MenuSlots slots, FamilyAccess access, FamilyRepository families,
                        FamilyMemberRepository members, MealWishRepository wishRepo, WishService wishService,
                        DishRepository dishes, ShoppingService shopping, NotificationService notifications,
                        KitchenDuty duty, MealHintService hints, LeftoverService leftoverService,
                        LeftoverRepository leftoverRepo, WeekTemplateService templates,
-                       MealRatingService ratingService, MealRatingRepository ratingRepo) {
+                       MealRatingService ratingService, MealRatingRepository ratingRepo,
+                       NutritionService nutrition) {
         this.menus = menus;
         this.slots = slots;
         this.access = access;
@@ -81,6 +84,7 @@ public class MenuService {
         this.templates = templates;
         this.ratingService = ratingService;
         this.ratingRepo = ratingRepo;
+        this.nutrition = nutrition;
     }
 
     @Transactional(readOnly = true)
@@ -304,6 +308,7 @@ public class MenuService {
         if (m.getStatus() != MenuStatus.CONFIRMED) throw BizException.conflict("BAD_STATUS", "请先确认菜单");
         m.setStatus(MenuStatus.READY);
         m.setReadyAt(slots.now());
+        shopping.deductStockOnReady(m);
         notifications.publish(familyId, m.getId(), NotificationType.DINNER_READY, "开饭啦",
                 slotLabel(m) + "做好了，快来吃！", me.getUserId());
         return get(familyId, menuId);
@@ -340,7 +345,7 @@ public class MenuService {
         return new MenuView(m.getId(), m.getMealDate(), m.getMealType(), m.getStatus(),
                 slots.deadline(family, m, m.getMealDate(), m.getMealType()), m.getNote(), m.getConfirmedAt(),
                 confirmedBy, m.getReadyAt(), items, wishCount,
-                assignedId, assignedName, assignedSource, proxy);
+                assignedId, assignedName, assignedSource, proxy, nutrition.ofMenu(m, dishMap));
     }
 
     private static CookBrief cookBrief(CookAssignment assigned, List<FamilyMember> all) {

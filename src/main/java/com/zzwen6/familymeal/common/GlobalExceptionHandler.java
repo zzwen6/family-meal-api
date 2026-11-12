@@ -16,6 +16,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
@@ -44,6 +46,11 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiError> badRequest(Exception e, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "请求参数有误", req);
+    }
+
+    @ExceptionHandler({MaxUploadSizeExceededException.class, MultipartException.class})
+    public ResponseEntity<ApiError> tooLarge(Exception e, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, "FILE_TOO_LARGE", "文件太大或上传失败，图片不超过 5MB，短视频不超过 30MB", req);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -25,6 +25,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -79,6 +80,18 @@ public abstract class IntegrationTestBase {
         }
         // 每次测试运行都从干净的库开始
         r.add("spring.flyway.clean-disabled", () -> "false");
+        r.add("app.media.path", () -> MEDIA_DIR);
+        r.add("app.media.image-max-bytes", () -> "8192");
+        r.add("app.media.video-max-bytes", () -> "16384");
+    }
+
+    static final String MEDIA_DIR;
+    static {
+        try {
+            MEDIA_DIR = Files.createTempDirectory("fm-media-test").toAbsolutePath().toString();
+        } catch (Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 
     private static String env(String k, String def) {

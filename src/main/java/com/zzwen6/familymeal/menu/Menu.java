@@ -32,6 +32,8 @@ public class Menu extends BaseTimeEntity {
     private Long confirmedBy;
     private LocalDateTime confirmedAt;
     private LocalDateTime readyAt;
+    @Column(nullable = false)
+    private boolean stockDeducted;
     @Version
     private long version;
 
@@ -58,5 +60,7 @@ public class Menu extends BaseTimeEntity {
     public void setConfirmedAt(LocalDateTime confirmedAt) { this.confirmedAt = confirmedAt; }
     public LocalDateTime getReadyAt() { return readyAt; }
     public void setReadyAt(LocalDateTime readyAt) { this.readyAt = readyAt; }
+    public boolean isStockDeducted() { return stockDeducted; }
+    public void setStockDeducted(boolean stockDeducted) { this.stockDeducted = stockDeducted; }
     public List<MenuItem> getItems() { return items; }
 }

@@ -28,6 +28,11 @@ public class ShoppingItem {
     private boolean toBuy = true;
     @Column(nullable = false)
     private boolean purchased;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal inventoryOffsetAmount;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal postedAmount;
+    private String postedUnit;
     private String sourceDishes;
     private String note;
     @Column(nullable = false)
@@ -61,6 +66,12 @@ public class ShoppingItem {
     public void setToBuy(boolean toBuy) { this.toBuy = toBuy; }
     public boolean isPurchased() { return purchased; }
     public void setPurchased(boolean purchased) { this.purchased = purchased; }
+    public BigDecimal getInventoryOffsetAmount() { return inventoryOffsetAmount; }
+    public void setInventoryOffsetAmount(BigDecimal inventoryOffsetAmount) { this.inventoryOffsetAmount = inventoryOffsetAmount; }
+    public BigDecimal getPostedAmount() { return postedAmount; }
+    public void setPostedAmount(BigDecimal postedAmount) { this.postedAmount = postedAmount; }
+    public String getPostedUnit() { return postedUnit; }
+    public void setPostedUnit(String postedUnit) { this.postedUnit = postedUnit; }
     public String getSourceDishes() { return sourceDishes; }
     public void setSourceDishes(String sourceDishes) { this.sourceDishes = sourceDishes; }
     public String getNote() { return note; }

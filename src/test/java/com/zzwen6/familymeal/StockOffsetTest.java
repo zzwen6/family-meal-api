@@ -43,6 +43,16 @@ class StockOffsetTest {
     }
 
     @Test
+    void consumeInventoryRemovesPostedPurchaseFromPool() {
+        var pool = new java.util.ArrayList<>(List.of(new PoolItem(Kind.INVENTORY, "猪脚", bd("2000"), "g")));
+        StockOffset.consumeInventory(pool, "猪脚", bd("2000"), "g");
+        Result r = StockOffset.apply("猪脚", bd("2000"), "g", pool);
+        assertThat(r.fullyCovered()).isFalse();
+        assertThat(r.remaining()).isEqualByComparingTo("2000");
+        assertThat(r.inventoryUsed()).isEqualByComparingTo("0");
+    }
+
+    @Test
     void noMatchLeavesNeededUnchanged() {
         Result r = StockOffset.apply("鸡腿", bd("8"), "个", List.of());
         assertThat(r.applied()).isFalse();

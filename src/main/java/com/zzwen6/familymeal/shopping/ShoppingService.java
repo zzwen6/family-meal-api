@@ -12,6 +12,7 @@ import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.family.FamilyMember;
 import com.zzwen6.familymeal.inventory.InventoryItem;
 import com.zzwen6.familymeal.inventory.InventoryItemRepository;
+import com.zzwen6.familymeal.inventory.InventoryService;
 import com.zzwen6.familymeal.inventory.Leftover;
 import com.zzwen6.familymeal.inventory.LeftoverRepository;
 import com.zzwen6.familymeal.menu.Menu;
@@ -36,10 +37,11 @@ public class ShoppingService {
     private final KitchenDuty duty;
     private final InventoryItemRepository inventory;
     private final LeftoverRepository leftovers;
+    private final InventoryService inventoryService;
 
     public ShoppingService(ShoppingListRepository lists, MenuRepository menus, DishRepository dishes,
                            FamilyAccess access, KitchenDuty duty, InventoryItemRepository inventory,
-                           LeftoverRepository leftovers) {
+                           LeftoverRepository leftovers, InventoryService inventoryService) {
         this.lists = lists;
         this.menus = menus;
         this.dishes = dishes;
@@ -47,14 +49,15 @@ public class ShoppingService {
         this.duty = duty;
         this.inventory = inventory;
         this.leftovers = leftovers;
+        this.inventoryService = inventoryService;
     }
 
     /**
      * 根据已确认菜单生成采购清单：
      * 1. 每道菜按「菜单份数 / 菜谱默认份数」缩放用量；
      * 2. 同名同单位合并累加，记录来自哪些菜；
-     * 3. 家里常备（staple）的默认不买；按名称对照库存和未用完剩菜扣减建议购买量（只计算、不改库存）；
-     * 4. 重新生成时保留「已买」；「买不买」仅在用户曾手工改过时保留，否则按常备和库存对照重新计算。
+     * 3. 家里常备（staple）的默认不买；按名称对照库存和未用完剩菜扣减建议购买量（只计算、不改库存数量）；
+     * 4. 重新生成时保留「已买」和已入账数量；「买不买」仅在用户曾手工改过时保留，否则按常备和库存对照重新计算。
      */
     @Transactional
     public ShoppingList generate(Menu menu) {
@@ -89,6 +92,13 @@ public class ShoppingService {
         }
 
         List<StockOffset.PoolItem> pool = stockPool(menu.getFamilyId());
+        // 本清单已入账的采购量不参与「家里已有」对照，避免刚买的又被当成库存
+        for (ShoppingItem prev : previous.values()) {
+            if (prev.getPostedAmount() != null) {
+                StockOffset.consumeInventory(pool, prev.getName(), prev.getPostedAmount(),
+                        prev.getPostedUnit() != null ? prev.getPostedUnit() : prev.getUnit());
+            }
+        }
         // 保留手动添加的条目（sourceDishes 为空）
         List<ShoppingItem> manual = list.getItems().stream().filter(i -> i.getSourceDishes() == null).toList();
         list.getItems().clear();
@@ -114,6 +124,11 @@ public class ShoppingService {
                 it.setManualToBuy(false);
             }
             it.setPurchased(prev != null && prev.isPurchased());
+            it.setInventoryOffsetAmount(offset.inventoryUsed());
+            if (prev != null && prev.getPostedAmount() != null) {
+                it.setPostedAmount(prev.getPostedAmount());
+                it.setPostedUnit(prev.getPostedUnit());
+            }
             String src = String.join("、", acc.sources);
             it.setSourceDishes(src.length() > 250 ? src.substring(0, 250) + "…" : src);
             it.setSortOrder(order++);
@@ -129,6 +144,9 @@ public class ShoppingService {
             copy.setStaple(false);
             copy.setToBuy(m.isToBuy());
             copy.setPurchased(m.isPurchased());
+            copy.setInventoryOffsetAmount(m.getInventoryOffsetAmount());
+            copy.setPostedAmount(m.getPostedAmount());
+            copy.setPostedUnit(m.getPostedUnit());
             copy.setManualToBuy(m.isManualToBuy() || m.isToBuy()); // 手加的条目视为用户意图
             copy.setNote(m.getNote());
             copy.setSortOrder(order++);
@@ -169,7 +187,11 @@ public class ShoppingService {
             item.setToBuy(req.toBuy());
             item.setManualToBuy(true);
         }
-        if (req.purchased() != null) item.setPurchased(req.purchased());
+        if (req.purchased() != null && req.purchased() != item.isPurchased()) {
+            item.setPurchased(req.purchased());
+            if (req.purchased()) inventoryService.postPurchase(familyId, item);
+            else inventoryService.revertPurchase(familyId, item);
+        }
         return ItemView.of(item);
     }
 
@@ -201,6 +223,15 @@ public class ShoppingService {
                 .orElseThrow(() -> BizException.notFound("菜单"));
         duty.requireKitchen(me, menu.getMealDate(), menu.getMealType());
         item.getList().getItems().remove(item);
+    }
+
+    /** 开饭时扣「对照时来自库存」的部分，整餐只扣一次。 */
+    @Transactional
+    public void deductStockOnReady(Menu menu) {
+        if (menu.isStockDeducted()) return;
+        menu.setStockDeducted(true);
+        lists.findByMenuId(menu.getId()).ifPresent(list ->
+                inventoryService.deductForMeal(menu.getFamilyId(), menu.getId(), list.getItems()));
     }
 
     private List<StockOffset.PoolItem> stockPool(Long familyId) {

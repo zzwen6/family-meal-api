@@ -6,6 +6,10 @@ server:
 spring:
   application:
     name: family-meal-api
+  servlet:
+    multipart:
+      max-file-size: ${MEDIA_MAX_FILE:30MB}
+      max-request-size: ${MEDIA_MAX_REQUEST:32MB}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/family_meal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${SPRING_DATASOURCE_USERNAME:family_meal}
@@ -83,6 +87,11 @@ app:
   login:
     max-failures: ${LOGIN_MAX_FAILURES:5}
     lock-minutes: ${LOGIN_LOCK_MINUTES:10}
+  media:
+    # 本地媒体目录，compose 可挂到 NAS 目录；文件名是不可猜测的 UUID
+    path: ${MEDIA_PATH:./data/media}
+    image-max-bytes: ${MEDIA_IMAGE_MAX_BYTES:5242880}
+    video-max-bytes: ${MEDIA_VIDEO_MAX_BYTES:31457280}
   jobs:
     deadline-cron: ${DEADLINE_CRON:0 * * * * *}
 

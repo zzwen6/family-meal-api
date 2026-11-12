@@ -19,9 +19,10 @@ public final class StockOffset {
 
     public record PoolItem(Kind kind, String name, BigDecimal amount, String unit) {}
 
-    public record Result(BigDecimal remaining, boolean fullyCovered, String note, boolean applied) {
+    public record Result(BigDecimal remaining, boolean fullyCovered, String note, boolean applied,
+                         BigDecimal leftoverUsed, BigDecimal inventoryUsed) {
         public static Result none(BigDecimal needed) {
-            return new Result(needed, false, null, false);
+            return new Result(needed, false, null, false, BigDecimal.ZERO, BigDecimal.ZERO);
         }
     }
 
@@ -35,7 +36,7 @@ public final class StockOffset {
         }
         if (matched.isEmpty()) {
             if (unitMismatch) {
-                return new Result(needed, false, "家里有同名的库存或剩菜，但单位不同，请核对", true);
+                return new Result(needed, false, "家里有同名的库存或剩菜，但单位不同，请核对", true, BigDecimal.ZERO, BigDecimal.ZERO);
             }
             return Result.none(needed);
         }
@@ -47,14 +48,41 @@ public final class StockOffset {
         BigDecimal known = leftoverAmt.add(inventoryAmt);
 
         if (needed == null || anyUnknown) {
-            return new Result(BigDecimal.ZERO, true, "家里已有" + detail(leftoverAmt, leftoverUnknown, inventoryAmt, inventoryUnknown), true);
+            // 用量未知或家里有「适量」：建议不买，但开饭时无法准确扣库存（inventoryUsed=0）
+            return new Result(BigDecimal.ZERO, true,
+                    "家里已有" + detail(leftoverAmt, leftoverUnknown, inventoryAmt, inventoryUnknown), true,
+                    BigDecimal.ZERO, BigDecimal.ZERO);
         }
+        BigDecimal leftoverUsed = leftoverAmt.min(needed);
+        BigDecimal afterLeftover = needed.subtract(leftoverUsed);
+        BigDecimal inventoryUsed = inventoryAmt.min(afterLeftover);
         if (known.compareTo(needed) >= 0) {
-            return new Result(BigDecimal.ZERO, true, "家里已有" + detail(leftoverAmt, false, inventoryAmt, false), true);
+            return new Result(BigDecimal.ZERO, true, "家里已有" + detail(leftoverAmt, false, inventoryAmt, false), true,
+                    leftoverUsed, inventoryUsed);
         }
-        BigDecimal remaining = Amounts.friendly(needed.subtract(known), itemUnit);
+        BigDecimal remaining = Amounts.friendly(needed.subtract(leftoverUsed).subtract(inventoryUsed), itemUnit);
         return new Result(remaining, false,
-                "已用" + usedPhrase(leftoverAmt, inventoryAmt) + "，还需买 " + label(remaining, itemUnit), true);
+                "已用" + usedPhrase(leftoverAmt, inventoryAmt) + "，还需买 " + label(remaining, itemUnit), true,
+                leftoverUsed, inventoryUsed);
+    }
+
+    /**
+     * 从库存池中扣掉本清单已经入账的采购量，避免「刚勾已买加进库存，再生成又当成家里已有」。
+     * 只动 INVENTORY，不动剩菜。
+     */
+    public static void consumeInventory(List<PoolItem> pool, String name, BigDecimal qty, String unit) {
+        if (pool == null || qty == null || qty.signum() <= 0) return;
+        BigDecimal remain = qty;
+        for (int i = 0; i < pool.size(); i++) {
+            PoolItem p = pool.get(i);
+            if (p.kind() != Kind.INVENTORY) continue;
+            if (!Names.same(name, p.name()) || !Names.compatibleUnit(unit, p.unit())) continue;
+            if (p.amount() == null) continue;
+            BigDecimal take = p.amount().min(remain);
+            pool.set(i, new PoolItem(p.kind(), p.name(), p.amount().subtract(take), p.unit()));
+            remain = remain.subtract(take);
+            if (remain.signum() <= 0) return;
+        }
     }
 
     private static BigDecimal sum(List<PoolItem> list, Kind kind) {

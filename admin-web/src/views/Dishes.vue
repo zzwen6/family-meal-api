@@ -13,7 +13,7 @@
     <el-table :data="dishes" v-loading="loading" stripe>
       <el-table-column label="封面" width="80">
         <template #default="{ row }">
-          <el-image v-if="row.coverUrl" :src="row.coverUrl" fit="cover" style="width: 48px; height: 48px; border-radius: 4px" />
+          <el-image v-if="row.coverUrl" :src="mediaSrc(row.coverUrl)" fit="cover" style="width: 48px; height: 48px; border-radius: 4px" />
         </template>
       </el-table-column>
       <el-table-column prop="name" label="菜名" min-width="140" />
@@ -52,7 +52,15 @@
           <el-col :span="8"><el-form-item label="用时(分)"><el-input-number v-model="form.durationMinutes" :min="1" :max="1440" /></el-form-item></el-col>
           <el-col :span="8"><el-form-item label="默认份数"><el-input-number v-model="form.defaultServings" :min="1" :max="100" /></el-form-item></el-col>
         </el-row>
-        <el-form-item label="封面图 URL"><el-input v-model="form.coverUrl" placeholder="https://..." /></el-form-item>
+        <el-form-item label="封面">
+          <div class="row-gap" style="align-items: flex-start">
+            <el-image v-if="form.coverUrl" :src="mediaSrc(form.coverUrl)" fit="cover" style="width: 72px; height: 72px; border-radius: 6px" />
+            <el-upload :show-file-list="false" accept="image/jpeg,image/png,image/webp,image/gif" :http-request="(opt) => uploadTo('cover', opt)">
+              <el-button>上传图片</el-button>
+            </el-upload>
+            <el-input v-model="form.coverUrl" placeholder="或粘贴外链（可选）" style="flex: 1" />
+          </div>
+        </el-form-item>
         <el-form-item label="简介"><el-input v-model="form.description" type="textarea" :rows="2" maxlength="500" /></el-form-item>
         <el-form-item label="小贴士"><el-input v-model="form.tips" type="textarea" :rows="2" maxlength="1000" placeholder="比如：猪脚要提前焯水" /></el-form-item>
 
@@ -62,13 +70,38 @@
         <ingredient-rows v-model="form.seasonings" />
 
         <el-divider content-position="left">做法步骤</el-divider>
-        <div v-for="(s, i) in form.steps" :key="i" class="step-row">
-          <span class="step-no">{{ i + 1 }}</span>
-          <el-input v-model="s.content" type="textarea" :rows="2" placeholder="关键节点：腌多久、火候、几分钟" />
-          <el-input-number v-model="s.durationMinutes" :min="0" :max="1440" placeholder="分钟" controls-position="right" style="width: 110px" />
-          <el-button link type="danger" @click="form.steps.splice(i, 1)">删除</el-button>
+        <div v-for="(s, i) in form.steps" :key="i" class="step-block">
+          <div class="step-row">
+            <span class="step-no">{{ i + 1 }}</span>
+            <el-input v-model="s.content" type="textarea" :rows="2" placeholder="关键节点：腌多久、火候、几分钟" />
+            <el-input-number v-model="s.durationMinutes" :min="0" :max="1440" placeholder="分钟" controls-position="right" style="width: 110px" />
+            <el-button link type="danger" @click="form.steps.splice(i, 1)">删除</el-button>
+          </div>
+          <div class="row-gap" style="margin: 6px 0 12px 30px; flex-wrap: wrap">
+            <el-upload :show-file-list="false" accept="image/jpeg,image/png,image/webp,image/gif" :http-request="(opt) => uploadTo('stepImage', opt, i)">
+              <el-button size="small">步骤图</el-button>
+            </el-upload>
+            <el-upload :show-file-list="false" accept="video/mp4,video/webm" :http-request="(opt) => uploadTo('stepVideo', opt, i)">
+              <el-button size="small">短视频</el-button>
+            </el-upload>
+            <el-image v-if="s.imageUrl" :src="mediaSrc(s.imageUrl)" fit="cover" style="width: 80px; height: 60px; border-radius: 4px" />
+            <video v-if="s.videoUrl" :src="mediaSrc(s.videoUrl)" :poster="mediaSrc(s.videoCoverUrl)" style="width: 160px; height: 90px" controls />
+          </div>
         </div>
-        <el-button size="small" @click="form.steps.push({ content: '', durationMinutes: null })">+ 添加步骤</el-button>
+        <el-button size="small" @click="form.steps.push({ content: '', durationMinutes: null, imageUrl: '', videoUrl: '', videoCoverUrl: '', videoDurationSeconds: null })">+ 添加步骤</el-button>
+
+        <el-divider content-position="left">营养估算（可选手工覆盖）</el-divider>
+        <p class="muted" style="margin: 0 0 8px">默认按用料估算，是约数不是检测或官方认证。开启覆盖后，以你填的整道菜（默认份数）为准。</p>
+        <el-form-item label="手工覆盖">
+          <el-switch v-model="form.nutritionEnabled" />
+        </el-form-item>
+        <el-row v-if="form.nutritionEnabled" :gutter="12">
+          <el-col :span="6"><el-form-item label="热量(kcal)"><el-input-number v-model="form.nutritionKcal" :min="0" :precision="1" controls-position="right" /></el-form-item></el-col>
+          <el-col :span="6"><el-form-item label="蛋白质(g)"><el-input-number v-model="form.nutritionProtein" :min="0" :precision="1" controls-position="right" /></el-form-item></el-col>
+          <el-col :span="6"><el-form-item label="脂肪(g)"><el-input-number v-model="form.nutritionFat" :min="0" :precision="1" controls-position="right" /></el-form-item></el-col>
+          <el-col :span="6"><el-form-item label="碳水(g)"><el-input-number v-model="form.nutritionCarb" :min="0" :precision="1" controls-position="right" /></el-form-item></el-col>
+        </el-row>
+        <p v-if="nutritionHint" class="muted">{{ nutritionHint }}</p>
       </el-form>
       <template #footer>
         <el-button @click="editor = false">取消</el-button>
@@ -81,7 +114,7 @@
 <script setup>
 import { computed, defineComponent, h, onMounted, ref } from 'vue'
 import { ElButton, ElCheckbox, ElInput, ElInputNumber, ElMessage, ElMessageBox } from 'element-plus'
-import { api, DIFFICULTY_LABELS } from '../api'
+import { api, DIFFICULTY_LABELS, mediaSrc } from '../api'
 
 const DEFAULT_CATEGORIES = ['硬菜', '家常菜', '素菜', '汤', '孩子爱吃', '主食', '早餐', '快手菜']
 
@@ -125,7 +158,8 @@ async function load() {
 const editor = ref(false)
 const formLoading = ref(false)
 const saving = ref(false)
-const empty = () => ({ id: null, name: '', category: '家常菜', difficulty: 'MEDIUM', durationMinutes: 30, defaultServings: 3, coverUrl: '', description: '', tips: '', ingredients: [], seasonings: [], steps: [] })
+const empty = () => ({ id: null, name: '', category: '家常菜', difficulty: 'MEDIUM', durationMinutes: 30, defaultServings: 3, coverUrl: '', description: '', tips: '', ingredients: [], seasonings: [], steps: [], nutritionEnabled: false, nutritionKcal: null, nutritionProtein: null, nutritionFat: null, nutritionCarb: null })
+const nutritionHint = ref('')
 const form = ref(empty())
 
 async function openEditor(id) {
@@ -140,8 +174,17 @@ async function openEditor(id) {
       id: d.id, name: d.name, category: d.category, difficulty: d.difficulty, durationMinutes: d.durationMinutes,
       defaultServings: d.defaultServings, coverUrl: d.coverUrl || '', description: d.description || '', tips: d.tips || '',
       ingredients: strip(d.ingredients), seasonings: strip(d.seasonings),
-      steps: d.steps.map((s) => ({ content: s.content, durationMinutes: s.durationMinutes })),
+      steps: d.steps.map((s) => ({ content: s.content, durationMinutes: s.durationMinutes, imageUrl: s.imageUrl || '', videoUrl: s.videoUrl || '', videoCoverUrl: s.videoCoverUrl || '', videoDurationSeconds: s.videoDurationSeconds })),
+      nutritionEnabled: !!d.nutritionOverride,
+      nutritionKcal: d.nutritionOverride ? d.nutrition?.total?.kcal ?? null : null,
+      nutritionProtein: d.nutritionOverride ? d.nutrition?.total?.protein ?? null : null,
+      nutritionFat: d.nutritionOverride ? d.nutrition?.total?.fat ?? null : null,
+      nutritionCarb: d.nutritionOverride ? d.nutrition?.total?.carb ?? null : null,
     }
+    const n = d.nutrition
+    nutritionHint.value = n
+      ? `当前估算：整道约 ${Math.round(n.total?.kcal || 0)} 千卡` + (n.excluded?.length ? `；未计入：${n.excluded.join('；')}` : '')
+      : ''
   } finally {
     formLoading.value = false
   }
@@ -151,7 +194,15 @@ async function save() {
   const f = form.value
   if (!f.name.trim() || !f.category) return ElMessage.warning('请填写菜名和分类')
   const clean = (list) => list.filter((i) => i.name && i.name.trim()).map((i) => ({ ...i, amount: i.amount ?? null }))
-  const body = { ...f, ingredients: clean(f.ingredients), seasonings: clean(f.seasonings), steps: f.steps.filter((s) => s.content && s.content.trim()) }
+  const body = {
+    ...f,
+    ingredients: clean(f.ingredients),
+    seasonings: clean(f.seasonings),
+    steps: f.steps.filter((s) => s.content && s.content.trim()),
+    nutrition: f.nutritionEnabled
+      ? { enabled: true, kcal: f.nutritionKcal, protein: f.nutritionProtein, fat: f.nutritionFat, carb: f.nutritionCarb }
+      : { enabled: false },
+  }
   saving.value = true
   try {
     if (f.id) await api.updateDish(f.id, body)
@@ -174,11 +225,25 @@ async function toggle(row) {
   load()
 }
 
+async function uploadTo(target, opt, index) {
+  try {
+    const r = await api.uploadMedia(opt.file)
+    if (target === 'cover') form.value.coverUrl = r.url
+    else if (target === 'stepImage') form.value.steps[index].imageUrl = r.url
+    else if (target === 'stepVideo') form.value.steps[index].videoUrl = r.url
+    opt.onSuccess?.(r)
+  } catch (e) {
+    opt.onError?.(e)
+  }
+}
+
 onMounted(load)
 </script>
 
 <style scoped>
+.step-block { margin-bottom: 8px; }
 .step-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.muted { color: #888; font-size: 13px; }
 .step-no { width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #e6772e; color: #fff; font-size: 12px; margin-top: 6px; flex-shrink: 0; }
 :deep(.ing-row) { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 </style>

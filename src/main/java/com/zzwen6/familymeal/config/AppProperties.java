@@ -14,7 +14,12 @@ public record AppProperties(
         Wechat wechat,
         Admin admin,
         Cors cors,
-        Login login) {
+        Login login,
+        Media media) {
+
+    public Media mediaOrDefault() {
+        return media == null ? Media.DEFAULT : media;
+    }
 
     public record Jwt(String secret, long ttlHours, String issuer) {}
 
@@ -58,4 +63,18 @@ public record AppProperties(
     public record Cors(List<String> allowedOrigins) {}
 
     public record Login(int maxFailures, int lockMinutes) {}
+
+    /**
+     * 菜谱封面和步骤图/视频的本地存储。未配置对象存储时一律走本地目录。
+     * 图片建议 ≤5MB，短视频建议 ≤30MB。
+     */
+    public record Media(String path, long imageMaxBytes, long videoMaxBytes) {
+        public static final Media DEFAULT = new Media("./data/media", 5L * 1024 * 1024, 30L * 1024 * 1024);
+
+        public Media {
+            if (path == null || path.isBlank()) path = DEFAULT.path();
+            if (imageMaxBytes <= 0) imageMaxBytes = DEFAULT.imageMaxBytes();
+            if (videoMaxBytes <= 0) videoMaxBytes = DEFAULT.videoMaxBytes();
+        }
+    }
 }
