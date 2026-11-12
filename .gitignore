@@ -1,0 +1,24 @@
+# Maven
+target/
+*.log
+
+# 管理后台构建产物（由 admin-web 构建生成）
+src/main/resources/static/admin/
+admin-web/node_modules/
+admin-web/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# 本地环境变量（不要提交真实密钥）
+.env
+.env.*
+!.env.example
+
+# 本地数据
+data/
+mysql-data/
+redis-data/

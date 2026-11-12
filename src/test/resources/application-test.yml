@@ -1,0 +1,12 @@
+app:
+  jwt:
+    secret: test-secret-test-secret-test-secret-0123456789
+  wechat:
+    mock-enabled: true
+  admin:
+    username: admin
+    password: admin-pass-123
+    family-name: 测试之家
+  jobs:
+    # 测试里手动调用，不让定时任务干扰
+    deadline-cron: "-"
