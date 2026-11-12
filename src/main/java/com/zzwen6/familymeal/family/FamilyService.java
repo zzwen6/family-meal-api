@@ -38,6 +38,7 @@ public class FamilyService {
 
     @Transactional
     public FamilyView create(CreateFamilyRequest req) {
+        access.requireCanHost();
         AppUser me = users.findById(CurrentUser.id()).orElseThrow(() -> BizException.unauthorized("用户不存在"));
         return createFor(me, req.name(), req.displayName());
     }
@@ -135,12 +136,14 @@ public class FamilyService {
         List<FamilyMember> list = members.findByFamilyIdOrderByIdAsc(familyId);
         Map<Long, AppUser> userMap = users.findAllById(list.stream().map(FamilyMember::getUserId).toList())
                 .stream().collect(Collectors.toMap(AppUser::getId, Function.identity()));
-        return list.stream().map(m -> MemberView.of(m, userMap.get(m.getUserId()))).toList();
+        Map<Long, String> names = list.stream().collect(Collectors.toMap(FamilyMember::getId, FamilyMember::getDisplayName));
+        return list.stream().map(m -> MemberView.of(m, userMap.get(m.getUserId()),
+                m.getGuardianMemberId() == null ? null : names.get(m.getGuardianMemberId()))).toList();
     }
 
     @Transactional
     public MemberView createMember(Long familyId, CreateMemberRequest req) {
-        access.admin(familyId);
+        FamilyMember admin = access.admin(familyId);
         String username = req.username().trim();
         if (users.existsByUsername(username)) throw BizException.conflict("USERNAME_TAKEN", "用户名已被使用");
         AppUser u = new AppUser();
@@ -151,12 +154,18 @@ public class FamilyService {
         FamilyMember m = new FamilyMember();
         m.setFamilyId(familyId);
         m.setUserId(u.getId());
-        m.setRole(req.role() == null ? Role.MEMBER : req.role());
+        Role role = req.role() == null ? Role.MEMBER : req.role();
+        m.setRole(role);
         m.setDisplayName(req.displayName().trim());
         m.setDietaryNotes(req.dietaryNotes());
         m.setAllergies(req.allergies());
+        if (role == Role.CHILD) {
+            m.setGuardianMemberId(resolveGuardian(familyId, req.guardianMemberId(), admin.getId()));
+        } else if (req.guardianMemberId() != null) {
+            throw BizException.badRequest("只有儿童角色才能指定监护人");
+        }
         members.save(m);
-        return MemberView.of(m, u);
+        return toView(familyId, m, u);
     }
 
     @Transactional
@@ -176,7 +185,44 @@ public class FamilyService {
         if (req.displayName() != null && !req.displayName().isBlank()) target.setDisplayName(req.displayName().trim());
         if (req.dietaryNotes() != null) target.setDietaryNotes(req.dietaryNotes());
         if (req.allergies() != null) target.setAllergies(req.allergies());
-        return MemberView.of(target, users.findById(target.getUserId()).orElse(null));
+        if (req.guardianMemberId() != null || (target.getRole() == Role.CHILD && target.getGuardianMemberId() == null)) {
+            if (target.getRole() != Role.CHILD) throw BizException.badRequest("只有儿童角色才能指定监护人");
+            if (req.guardianMemberId() != null && !me.getRole().isAdmin()) {
+                throw BizException.forbidden("只有管理员可以指定监护人");
+            }
+            Long requested = req.guardianMemberId() != null ? req.guardianMemberId()
+                    : (target.getGuardianMemberId() != null ? target.getGuardianMemberId() : me.getId());
+            target.setGuardianMemberId(resolveGuardian(familyId, requested, me.getId()));
+        }
+        if (target.getRole() != Role.CHILD) {
+            target.setGuardianMemberId(null);
+        } else if (target.getGuardianMemberId() == null) {
+            target.setGuardianMemberId(resolveGuardian(familyId, null, me.getId()));
+        }
+        if (req.password() != null && !req.password().isBlank()) {
+            if (!me.getRole().isAdmin()) throw BizException.forbidden("只有管理员可以重设密码");
+            AppUser u = users.findById(target.getUserId()).orElseThrow(() -> BizException.notFound("用户"));
+            if (u.getUsername() == null) throw BizException.badRequest("该账号没有用户名，无法设置密码");
+            u.setPasswordHash(encoder.encode(req.password()));
+        }
+        return toView(familyId, target, users.findById(target.getUserId()).orElse(null));
+    }
+
+    private MemberView toView(Long familyId, FamilyMember m, AppUser u) {
+        String gname = null;
+        if (m.getGuardianMemberId() != null) {
+            gname = members.findByIdAndFamilyId(m.getGuardianMemberId(), familyId)
+                    .map(FamilyMember::getDisplayName).orElse(null);
+        }
+        return MemberView.of(m, u, gname);
+    }
+
+    /** 监护人必须是同一家庭的非儿童成员；未指定时使用 fallback（通常是当前管理员）。 */
+    private Long resolveGuardian(Long familyId, Long requested, Long fallback) {
+        Long id = requested != null ? requested : fallback;
+        FamilyMember g = members.findByIdAndFamilyId(id, familyId).orElseThrow(() -> BizException.notFound("监护人"));
+        if (g.getRole() == Role.CHILD) throw BizException.badRequest("监护人不能是儿童");
+        return g.getId();
     }
 
     @Transactional

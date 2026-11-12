@@ -45,27 +45,36 @@ public final class FamilyDtos {
     }
 
     public record MemberView(Long id, Long userId, String displayName, Role role, String dietaryNotes,
-                             String allergies, String username, boolean wechatBound, LocalDateTime joinedAt) {
+                             String allergies, String username, boolean wechatBound, LocalDateTime joinedAt,
+                             Long guardianMemberId, String guardianName) {
         public static MemberView of(FamilyMember m, AppUser u) {
+            return of(m, u, null);
+        }
+
+        public static MemberView of(FamilyMember m, AppUser u, String guardianName) {
             return new MemberView(m.getId(), m.getUserId(), m.getDisplayName(), m.getRole(), m.getDietaryNotes(),
                     m.getAllergies(), u == null ? null : u.getUsername(), u != null && u.getWxOpenid() != null,
-                    m.getJoinedAt());
+                    m.getJoinedAt(), m.getGuardianMemberId(), guardianName);
         }
     }
 
-    /** 管理员直接创建成员（如给孩子或老人建一个用户名密码账号，在 H5 / 平板上用）。 */
+    /** 管理员直接创建成员（如给孩子或老人建一个用户名密码账号，在 H5 / 平板上用）。
+     * 角色为 CHILD 时，guardianMemberId 可指定监护人；不填则默认绑定当前管理员。 */
     public record CreateMemberRequest(
             @NotBlank(message = "称呼不能为空") @Size(max = 64) String displayName,
             Role role,
             @NotBlank(message = "用户名不能为空") @Size(min = 3, max = 32) String username,
             @NotBlank(message = "密码不能为空") @Size(min = 6, max = 64) String password,
             @Size(max = 255) String dietaryNotes,
-            @Size(max = 255) String allergies) {}
+            @Size(max = 255) String allergies,
+            Long guardianMemberId) {}
 
-    /** role 仅管理员可改；其他字段本人或管理员可改。 */
+    /** role、guardianMemberId、password 仅管理员可改；其他字段本人或管理员可改。 */
     public record UpdateMemberRequest(
             @Size(max = 64) String displayName,
             Role role,
             @Size(max = 255) String dietaryNotes,
-            @Size(max = 255) String allergies) {}
+            @Size(max = 255) String allergies,
+            Long guardianMemberId,
+            @Size(min = 6, max = 64) String password) {}
 }

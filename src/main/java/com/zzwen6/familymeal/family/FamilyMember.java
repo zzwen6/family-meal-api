@@ -23,6 +23,8 @@ public class FamilyMember {
     private String displayName;
     private String dietaryNotes;
     private String allergies;
+    /** 儿童的监护人（同一家庭的非 CHILD 成员）。 */
+    private Long guardianMemberId;
     @Column(nullable = false)
     private LocalDateTime joinedAt;
 
@@ -44,5 +46,7 @@ public class FamilyMember {
     public void setDietaryNotes(String dietaryNotes) { this.dietaryNotes = dietaryNotes; }
     public String getAllergies() { return allergies; }
     public void setAllergies(String allergies) { this.allergies = allergies; }
+    public Long getGuardianMemberId() { return guardianMemberId; }
+    public void setGuardianMemberId(Long guardianMemberId) { this.guardianMemberId = guardianMemberId; }
     public LocalDateTime getJoinedAt() { return joinedAt; }
 }

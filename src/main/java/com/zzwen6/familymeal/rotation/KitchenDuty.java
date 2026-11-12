@@ -2,6 +2,7 @@ package com.zzwen6.familymeal.rotation;
 
 import com.zzwen6.familymeal.common.BizException;
 import com.zzwen6.familymeal.common.Enums.MealType;
+import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.family.FamilyMember;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,7 @@ public class KitchenDuty {
     }
 
     public boolean canRunKitchen(FamilyMember me, LocalDate date, MealType type) {
+        if (me.getRole() == Role.CHILD) return false;
         if (me.getRole().canCook()) return true;
         return assignment(me.getFamilyId(), date, type)
                 .map(a -> a.getMemberId().equals(me.getId()))
@@ -42,6 +44,7 @@ public class KitchenDuty {
      * 还没有安排时，掌厨也可以指定。
      */
     public boolean canManageAssignment(FamilyMember me, LocalDate date, MealType type) {
+        if (me.getRole() == Role.CHILD) return false;
         if (me.getRole().isAdmin()) return true;
         Optional<CookAssignment> a = assignment(me.getFamilyId(), date, type);
         if (a.isPresent()) return a.get().getMemberId().equals(me.getId());

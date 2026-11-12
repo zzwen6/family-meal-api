@@ -4,6 +4,7 @@ import com.zzwen6.familymeal.auth.AppUser;
 import com.zzwen6.familymeal.auth.AppUserRepository;
 import com.zzwen6.familymeal.common.BizException;
 import com.zzwen6.familymeal.common.Enums.MealType;
+import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.common.Enums.NotificationType;
 import com.zzwen6.familymeal.dish.Amounts;
 import com.zzwen6.familymeal.family.FamilyMemberRepository;
@@ -95,6 +96,7 @@ public class GatheringService {
     @Transactional
     public GatheringDetail create(CreateRequest req) {
         AppUser me = currentUser();
+        requireCanCreateGathering();
         if (req.mealDate().isBefore(today())) throw BizException.badRequest("不能约在过去的日子");
         checkHostFamily(req.hostFamilyId());
         Gathering g = new Gathering();
@@ -625,11 +627,18 @@ public class GatheringService {
     }
 
     /** hostFamilyId 只能填自己所在的家庭（仅用于日历占位）。 */
+    private void requireCanCreateGathering() {
+        var mine = familyMembers.findByUserIdOrderByIdAsc(CurrentUser.id());
+        if (!mine.isEmpty() && mine.stream().allMatch(m -> m.getRole() == Role.CHILD)) {
+            throw BizException.forbidden("小朋友不能发起聚餐");
+        }
+    }
+
     private void checkHostFamily(Long familyId) {
         if (familyId == null) return;
-        if (familyMembers.findByFamilyIdAndUserId(familyId, CurrentUser.id()).isEmpty()) {
-            throw BizException.forbidden("只能在自己所在的家庭日历上占位");
-        }
+        var m = familyMembers.findByFamilyIdAndUserId(familyId, CurrentUser.id())
+                .orElseThrow(() -> BizException.forbidden("只能在自己所在的家庭日历上占位"));
+        if (m.getRole() == Role.CHILD) throw BizException.forbidden("小朋友不能发起聚餐");
     }
 
     private Gathering byToken(String token) {

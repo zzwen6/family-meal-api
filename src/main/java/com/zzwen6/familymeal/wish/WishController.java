@@ -31,8 +31,9 @@ public class WishController {
     @GetMapping("/mine")
     public List<WishView> mine(@PathVariable Long familyId,
                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return service.mine(familyId, from, to);
+                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+                               @RequestParam(required = false) Long memberId) {
+        return service.mine(familyId, from, to, memberId);
     }
 
     @PostMapping

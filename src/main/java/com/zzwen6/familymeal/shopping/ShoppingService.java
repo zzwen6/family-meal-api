@@ -8,6 +8,7 @@ import com.zzwen6.familymeal.dish.Dish;
 import com.zzwen6.familymeal.dish.DishIngredient;
 import com.zzwen6.familymeal.dish.DishRepository;
 import com.zzwen6.familymeal.family.FamilyAccess;
+import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.family.FamilyMember;
 import com.zzwen6.familymeal.inventory.InventoryItem;
 import com.zzwen6.familymeal.inventory.InventoryItemRepository;
@@ -159,6 +160,7 @@ public class ShoppingService {
     @Transactional
     public ItemView updateItem(Long familyId, Long itemId, UpdateItemRequest req) {
         FamilyMember me = access.member(familyId);
+        if (me.getRole() == Role.CHILD) throw BizException.forbidden("小朋友不能改采购清单");
         ShoppingItem item = lists.findItem(familyId, itemId).orElseThrow(() -> BizException.notFound("采购项"));
         if (req.toBuy() != null && req.toBuy() != item.isToBuy()) {
             Menu menu = menus.findByIdAndFamilyId(item.getList().getMenuId(), familyId)

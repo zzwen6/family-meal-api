@@ -251,6 +251,11 @@ public class MealHintService {
                 .toList();
     }
 
+    /** 一条 WANT 意愿是否被这餐已确认菜单兑现（按菜谱 id 或规范化菜名，含替代菜）。 */
+    public boolean fulfilled(Long familyId, Menu menu, MealWish w) {
+        return matchedIn(familyId, menu, w);
+    }
+
     private boolean matchedIn(Long familyId, Menu menu, MealWish w) {
         for (DishRef ref : refsOf(familyId, menu.getItems())) {
             if (matchesWish(familyId, ref, w)) return true;

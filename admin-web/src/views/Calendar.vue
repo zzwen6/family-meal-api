@@ -6,6 +6,7 @@
         <el-button @click="shift(-7)">上一周</el-button>
         <el-button @click="goToday">本周</el-button>
         <el-button @click="shift(7)">下一周</el-button>
+        <el-button type="primary" plain @click="$router.push('/stats')">查看统计</el-button>
       </div>
     </div>
     <p class="muted">{{ days[0]?.date }} 至 {{ days[6]?.date }}。点击格子查看当餐的意愿、菜单和采购清单。</p>
@@ -24,7 +25,13 @@
             </div>
             <div class="muted" v-if="!slot(d.date, meal).items.length">{{ slot(d.date, meal).wishCount }} 条意愿</div>
           </template>
-          <span v-else-if="!assignmentAt(d.date, meal) && !gatheringsAt(d.date, meal).length" class="muted">—</span>
+          <template v-if="plansAt(d.date, meal).length && !slot(d.date, meal)?.items?.length">
+            <el-tag size="small" type="info">计划</el-tag>
+            <div class="items plan">
+              <div v-for="it in plansAt(d.date, meal)" :key="it.id">· {{ it.name }}</div>
+            </div>
+          </template>
+          <span v-else-if="!slot(d.date, meal) && !plansAt(d.date, meal).length && !assignmentAt(d.date, meal) && !gatheringsAt(d.date, meal).length" class="muted">—</span>
           <div v-if="assignmentAt(d.date, meal)" class="cook">👨‍🍳 {{ assignmentAt(d.date, meal).memberName }}<span v-if="assignmentAt(d.date, meal).proxyConfirm" class="muted">（{{ assignmentAt(d.date, meal).confirmedByName }} 代做）</span></div>
           <div v-for="g in gatheringsAt(d.date, meal)" :key="'g' + g.id" class="gathering" :title="`${g.hostName} 发起的临时聚餐`">
             🎉 临时聚餐：{{ g.title }}
@@ -50,6 +57,7 @@
           截止：{{ board.deadline?.replace('T', ' ').slice(0, 16) }}，预计 {{ board.headcount }} 人在家吃
           <el-tag v-if="board.menu" size="small" :type="STATUS_TYPES[board.menu.status]" style="margin-left: 8px">{{ STATUS_LABELS[board.menu.status] }}</el-tag>
         </p>
+        <p v-if="board.planItems?.length && !board.menu?.items?.length" class="muted">本餐计划：{{ board.planItems.map((i) => i.name).join('、') }}（确认时会带出，仍可改）</p>
         <p v-if="board.assignedCook">
           今晚掌厨：{{ board.assignedCook.displayName }}
           <el-tag v-if="board.proxyConfirm" size="small" type="warning" style="margin-left: 8px">{{ board.menu?.confirmedByName }} 代做</el-tag>
@@ -115,6 +123,7 @@ const start = ref(monday(new Date()))
 const menus = ref([])
 const gatherings = ref([])
 const assignments = ref([])
+const plans = ref([])
 const loading = ref(false)
 
 const days = computed(() => Array.from({ length: 7 }, (_, i) => {
@@ -138,19 +147,22 @@ function goToday() { start.value = monday(new Date()); load() }
 function slot(date, meal) { return menus.value.find((m) => m.mealDate === date && m.mealType === meal) }
 function gatheringsAt(date, meal) { return gatherings.value.filter((g) => g.mealDate === date && g.mealType === meal) }
 function assignmentAt(date, meal) { return assignments.value.find((a) => a.mealDate === date && a.mealType === meal) }
+function plansAt(date, meal) { return plans.value.filter((p) => p.mealDate === date && p.mealType === meal) }
 
 async function load() {
   loading.value = true
   try {
     const [from, to] = [days.value[0].date, days.value[6].date]
-    const [m, g, a] = await Promise.all([
+    const [m, g, a, p] = await Promise.all([
       api.calendar(from, to),
       api.gatheringSlots(from, to).catch(() => []),
       api.cookAssignments(from, to).catch(() => []),
+      api.mealPlans(from, to).catch(() => []),
     ])
     menus.value = m
     gatherings.value = g
     assignments.value = a
+    plans.value = p
   } finally {
     loading.value = false
   }

@@ -8,6 +8,8 @@
         <el-menu-item index="/members">成员管理</el-menu-item>
         <el-menu-item index="/rules">家庭规则</el-menu-item>
         <el-menu-item index="/inventory">库存与剩菜</el-menu-item>
+        <el-menu-item index="/templates">周菜单模板</el-menu-item>
+        <el-menu-item index="/stats">统计</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

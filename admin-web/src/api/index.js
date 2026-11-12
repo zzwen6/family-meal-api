@@ -78,6 +78,17 @@ export const api = {
   updateLeftover: (id, body) => request('PUT', `${f()}/leftovers/${id}`, body),
   useLeftover: (id, menuId) => request('POST', `${f()}/leftovers/${id}/use`, { menuId }),
   deleteLeftover: (id) => request('DELETE', `${f()}/leftovers/${id}`),
+  weekTemplates: () => request('GET', `${f()}/week-templates`),
+  weekTemplate: (id) => request('GET', `${f()}/week-templates/${id}`),
+  createWeekTemplate: (body) => request('POST', `${f()}/week-templates`, body),
+  updateWeekTemplate: (id, body) => request('PUT', `${f()}/week-templates/${id}`, body),
+  deleteWeekTemplate: (id) => request('DELETE', `${f()}/week-templates/${id}`),
+  templateFromWeek: (body) => request('POST', `${f()}/week-templates/from-week`, body),
+  applyTemplate: (id, body) => request('POST', `${f()}/week-templates/${id}/apply`, body),
+  mealPlans: (from, to) => request('GET', `${f()}/meal-plans?from=${from}&to=${to}`),
+  stats: (from, to) => request('GET', `${f()}/stats?from=${from}&to=${to}`),
+  ratings: (menuId) => request('GET', `${f()}/menus/${menuId}/ratings`),
+  upsertRating: (menuId, body) => request('POST', `${f()}/menus/${menuId}/ratings`, body),
 }
 
 export const ROLE_LABELS = { ADMIN: '管理员', COOK: '掌厨', MEMBER: '成员', CHILD: '儿童' }

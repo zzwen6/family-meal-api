@@ -15,7 +15,7 @@ public final class WishDtos {
 
     /**
      * 提交点餐意愿。dishId 和 freeText 二选一（都填以 dishId 为准）；notEatingHome=true 表示这餐不在家吃。
-     * memberId 不填表示本人；掌厨/管理员可以替孩子等成员填写。
+     * memberId 不填表示本人；掌厨/管理员或该孩子的监护人可以代填。
      */
     public record WishRequest(
             @NotNull(message = "请选择日期") LocalDate mealDate,

@@ -1,6 +1,7 @@
 package com.zzwen6.familymeal.inventory;
 
 import com.zzwen6.familymeal.common.BizException;
+import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.common.Names;
 import com.zzwen6.familymeal.common.TimeHolder;
 import com.zzwen6.familymeal.dish.Amounts;
@@ -106,6 +107,7 @@ public class LeftoverService {
     }
 
     private void requireWrite(FamilyMember me, Long menuId) {
+        if (me.getRole() == Role.CHILD) throw BizException.forbidden("小朋友不能登记剩菜");
         if (me.getRole().canCook()) return;
         if (menuId != null) {
             Menu menu = menus.findByIdAndFamilyId(menuId, me.getFamilyId()).orElse(null);

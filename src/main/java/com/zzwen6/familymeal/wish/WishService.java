@@ -48,13 +48,18 @@ public class WishService {
     }
 
     @Transactional(readOnly = true)
-    public List<WishView> mine(Long familyId, LocalDate from, LocalDate to) {
+    public List<WishView> mine(Long familyId, LocalDate from, LocalDate to, Long memberId) {
         FamilyMember me = access.member(familyId);
+        FamilyMember target = me;
+        if (memberId != null && !memberId.equals(me.getId())) {
+            target = members.findByIdAndFamilyId(memberId, familyId).orElseThrow(() -> BizException.notFound("成员"));
+            access.requireActFor(me, target);
+        }
         LocalDate f = from == null ? slots.today() : from;
         LocalDate t = to == null ? f.plusDays(7) : to;
         if (t.isBefore(f) || t.isAfter(f.plusDays(62))) throw BizException.badRequest("日期范围不正确");
         return toViews(familyId, wishes.findByFamilyIdAndMemberIdAndMealDateBetweenOrderByMealDateAscIdAsc(
-                familyId, me.getId(), f, t), me);
+                familyId, target.getId(), f, t), me);
     }
 
     @Transactional
@@ -148,14 +153,17 @@ public class WishService {
 
     private FamilyMember resolveTarget(Long familyId, FamilyMember me, Long memberId) {
         if (memberId == null || memberId.equals(me.getId())) return me;
-        if (!me.getRole().canCook()) throw BizException.forbidden("只能替自己点餐");
-        return members.findByIdAndFamilyId(memberId, familyId).orElseThrow(() -> BizException.notFound("成员"));
+        FamilyMember target = members.findByIdAndFamilyId(memberId, familyId)
+                .orElseThrow(() -> BizException.notFound("成员"));
+        access.requireActFor(me, target);
+        return target;
     }
 
     private void checkOwnerOrCook(FamilyMember me, MealWish w) {
-        if (!w.getMemberId().equals(me.getId()) && !me.getRole().canCook()) {
-            throw BizException.forbidden("只能修改自己的点餐");
-        }
+        if (w.getMemberId().equals(me.getId())) return;
+        FamilyMember owner = members.findById(w.getMemberId()).orElse(null);
+        if (owner != null && access.canActFor(me, owner)) return;
+        throw BizException.forbidden("只能修改自己的点餐，或作为监护人替孩子改");
     }
 
     /**
@@ -186,7 +194,9 @@ public class WishService {
             Menu menu = menuCache.computeIfAbsent(w.getMealDate() + "|" + w.getMealType(), k ->
                     menus.findByFamilyIdAndMealDateAndMealType(familyId, w.getMealDate(), w.getMealType()).orElse(null));
             boolean mine = w.getMemberId().equals(me.getId());
-            boolean editable = (mine || me.getRole().canCook()) && !w.getMealDate().isBefore(slots.today())
+            FamilyMember owner = members.findById(w.getMemberId()).orElse(null);
+            boolean canAct = mine || (owner != null && access.canActFor(me, owner));
+            boolean editable = canAct && !w.getMealDate().isBefore(slots.today())
                     && (me.getRole().canCook()
                         ? menu == null || menu.getStatus() == MenuStatus.OPEN || menu.getStatus() == MenuStatus.LOCKED
                         : slots.openForMembers(family, menu, w.getMealDate(), w.getMealType()));

@@ -158,7 +158,8 @@ class MealFlowIntegrationTest extends IntegrationTestBase {
         assertThat(patch(base + "/shopping-items/" + soyId, kid, Map.of("toBuy", true)).status()).isEqualTo(403);
         assertThat(patch(base + "/shopping-items/" + soyId, dad, Map.of("toBuy", true)).body().get("toBuy").asBoolean()).isTrue();
         long porkId = findBy(buy, "name", "猪脚").get("id").asLong();
-        assertThat(patch(base + "/shopping-items/" + porkId, kid, Map.of("purchased", true)).status()).isEqualTo(200);
+        assertThat(patch(base + "/shopping-items/" + porkId, kid, Map.of("purchased", true)).status()).isEqualTo(403);
+        assertThat(patch(base + "/shopping-items/" + porkId, grandma, Map.of("purchased", true)).status()).isEqualTo(200);
 
         // 重新生成保留勾选
         Res regen = post(base + "/menus/" + menuId + "/shopping-list/regenerate", dad, null);

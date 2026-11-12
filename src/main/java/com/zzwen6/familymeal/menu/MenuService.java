@@ -13,9 +13,14 @@ import com.zzwen6.familymeal.inventory.LeftoverRepository;
 import com.zzwen6.familymeal.inventory.LeftoverService;
 import com.zzwen6.familymeal.menu.MenuDtos.*;
 import com.zzwen6.familymeal.notify.NotificationService;
+import com.zzwen6.familymeal.rating.MealRatingRepository;
+import com.zzwen6.familymeal.rating.MealRatingService;
+import com.zzwen6.familymeal.rating.RatingDtos.RatingView;
 import com.zzwen6.familymeal.rotation.CookAssignment;
 import com.zzwen6.familymeal.rotation.KitchenDuty;
 import com.zzwen6.familymeal.shopping.ShoppingService;
+import com.zzwen6.familymeal.template.TemplateDtos.PlanItemView;
+import com.zzwen6.familymeal.template.WeekTemplateService;
 import com.zzwen6.familymeal.wish.MealWish;
 import com.zzwen6.familymeal.wish.MealWishRepository;
 import com.zzwen6.familymeal.wish.WishService;
@@ -49,12 +54,16 @@ public class MenuService {
     private final MealHintService hints;
     private final LeftoverService leftoverService;
     private final LeftoverRepository leftoverRepo;
+    private final WeekTemplateService templates;
+    private final MealRatingService ratingService;
+    private final MealRatingRepository ratingRepo;
 
     public MenuService(MenuRepository menus, MenuSlots slots, FamilyAccess access, FamilyRepository families,
                        FamilyMemberRepository members, MealWishRepository wishRepo, WishService wishService,
                        DishRepository dishes, ShoppingService shopping, NotificationService notifications,
                        KitchenDuty duty, MealHintService hints, LeftoverService leftoverService,
-                       LeftoverRepository leftoverRepo) {
+                       LeftoverRepository leftoverRepo, WeekTemplateService templates,
+                       MealRatingService ratingService, MealRatingRepository ratingRepo) {
         this.menus = menus;
         this.slots = slots;
         this.access = access;
@@ -69,6 +78,9 @@ public class MenuService {
         this.hints = hints;
         this.leftoverService = leftoverService;
         this.leftoverRepo = leftoverRepo;
+        this.templates = templates;
+        this.ratingService = ratingService;
+        this.ratingRepo = ratingRepo;
     }
 
     @Transactional(readOnly = true)
@@ -122,11 +134,20 @@ public class MenuService {
         List<HintView> hintList = hints.forBoard(family, date, type, onBoard);
         List<LeftoverView> leftoverList = leftoverRepo.findByFamilyIdAndUsedFalseOrderByExpiresOnAscIdAsc(familyId)
                 .stream().map(LeftoverView::of).toList();
+        List<PlanItemView> planItems = templates.plansOf(familyId, date, type);
+        List<RatingView> ratingList = List.of();
+        RatingView myRating = null;
+        if (menu != null && menu.getStatus() == MenuStatus.READY) {
+            ratingList = ratingService.toViews(familyId,
+                    ratingRepo.findByFamilyIdAndMenuIdOrderByIdAsc(familyId, menu.getId()), me);
+            myRating = ratingList.stream().filter(r -> r.memberId().equals(me.getId())).findFirst().orElse(null);
+        }
         return new BoardView(date, type, menu == null ? null : view(family, menu, list.size()), canEdit,
                 me.getRole().canCook(), duty.canRunKitchen(me, date, type),
                 duty.canManageAssignment(me, date, type),
                 slots.deadline(family, menu, date, type), headcount, statuses, voteList,
-                wishService.toViews(familyId, list, me), cookBrief, proxy, hintList, leftoverList);
+                wishService.toViews(familyId, list, me), cookBrief, proxy, hintList, leftoverList,
+                planItems, ratingList, myRating);
     }
 
     @Transactional(readOnly = true)

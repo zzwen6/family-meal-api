@@ -6,7 +6,9 @@ import com.zzwen6.familymeal.common.Enums.MenuStatus;
 import com.zzwen6.familymeal.common.Enums.Role;
 import com.zzwen6.familymeal.hint.HintDtos.HintView;
 import com.zzwen6.familymeal.inventory.InventoryDtos.LeftoverView;
+import com.zzwen6.familymeal.rating.RatingDtos.RatingView;
 import com.zzwen6.familymeal.shopping.ShoppingDtos.ShoppingListView;
+import com.zzwen6.familymeal.template.TemplateDtos.PlanItemView;
 import com.zzwen6.familymeal.wish.WishDtos.WishView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -65,7 +67,8 @@ public final class MenuDtos {
                             LocalDateTime deadline, int headcount, List<MemberStatus> members,
                             List<DishVote> votes, List<WishView> wishes,
                             CookBrief assignedCook, boolean proxyConfirm,
-                            List<HintView> hints, List<LeftoverView> leftovers) {}
+                            List<HintView> hints, List<LeftoverView> leftovers,
+                            List<PlanItemView> planItems, List<RatingView> ratings, RatingView myRating) {}
 
     public record ConfirmResponse(MenuView menu, ShoppingListView shoppingList, List<HintView> hints) {}
 
